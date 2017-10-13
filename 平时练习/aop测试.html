@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>aop</title>
+</head>
+<body>
+	<button id="dd">点击</button>
+	<script src="jquery-2.0.3.js"></script>
+	<script>
+		// 三个参数__需要改变的对象，__需要的目标方法，__我们添加的干预
+			// 函数完全等价，处理参数，js语句，上下文都要一样（Math.random这种方法，就算一样，TMD结果也不一样）
+			// 所以得用下面的等式，并且添加我们的干预
+			function doAfter( method , beforeFunc , afterFunc ) {
+			    return function() {
+			    	// 深拷贝参数，保持函数的纯度
+			    	var args = JSON.parse( JSON.stringify( arguments ) );
+
+			    	// 1、在目标方法调用之前的操作（添加干预）
+			    	!!beforeFunc && beforeFunc.call( this , arguments );
+
+			    	//目标方法的调用
+			        var res = method.apply( this , arguments );
+
+			        // 2、在目标方法调用之后的操作（添加干预）
+			        !!afterFunc &&　afterFunc.call( this , arguments );
+
+			        //返回这个函数的结果，就算是返回的undefined，也需要，因为我们并不知道目标函数有没有返回值
+			        return res;   
+			    };
+			}
+	</script>
+	<script>
+
+		function before( param ) {
+			dd.addEventListener( 'click' , function() {
+				console.log( 11 )
+			} )
+		}
+
+		function after ( para ) {
+			console.log( this[0].style.height )
+		}
+
+		$.fn.css  = doAfter( $.fn.css , before , after )
+
+		$( dd ).css( 'height' , 30 )
+
+	</script>
+</body>
+</html>

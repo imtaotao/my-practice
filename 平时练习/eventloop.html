@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+</head>
+<body>
+	<script>
+		// setTimeout(() => {
+		// 	console.log( '第一次事件循环： one' )
+		// 	setTimeout( () => {
+		// 		console.log( '第二次事件循环 ： 1' );
+		// 		setTimeout( () => {
+		// 			console.log( '第三次事件循环' );
+		// 		})
+		// 		for( ;; ) {}
+		// 	})
+		// });
+
+		// console.log( '主线程,此时事件队列之中没有事件回调' );
+
+		// setTimeout(() => {
+		// 	console.log( '第一次事件循环：two ' )
+		// 	setTimeout( () => {
+		// 		console.log( '第二次事件循环 ： 2' );
+		// 	})
+		// });
+
+		var time = 0;
+		setTimeout( () => {
+			console.log( "此次定时器的误差大约为：" + time + 'ms' );
+		}, 5 )
+
+		setTimeout( () => {
+			var data = Date.now()
+
+			console.time( '第一个异步回调执行耗时' )
+			console.log( 111 )
+			for( var i = 0; i < 800000000; i++ ) {};
+			console.timeEnd( '第一个异步回调执行耗时' )
+
+			time += Date.now() - data;
+		}, 0 )
+	</script>
+</body>
+</html>

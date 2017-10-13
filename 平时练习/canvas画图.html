@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+	<style>
+		body{
+			background: url(img/1.jpg);
+			background-size: cover;
+		}
+		#container{
+			width: 100%;
+			height: 400px;
+			position: relative;
+			top: 450px;
+		}
+		#canvas{
+			/*border: 1px solid black;*/
+		}
+	</style>
+</head>
+<body>
+	<div id="container">
+		<canvas width="1300" height="200" id="canvas">
+			您的浏览器不支持Canvas绘图技术！
+		</canvas>	
+	</div>
+	<script>
+		var isString = function( string ) {
+			return Object.prototype.toString.call( string ) === "[object String]"
+		};
+
+		var isObj = function( obj ) {
+			return Object.prototype.toString.call( obj ) === "[object Object]"
+		};
+
+		var isFun = function( fun ){
+			return Object.prototype.toString.call( fun ) === "[object Function]"
+		};
+
+		var random = function( type , param ){
+			//随机数字
+			if( type === 'number' ){
+				if( isObj( param ) ){	//判断是否传最小值，没传默认为0
+
+					var max = param.max,
+						min = param.min;
+
+					return parseInt( Math.random() * ( max - min + 1 ) + min )
+				}else{
+
+					return parseInt( Math.random() * ( param + 1 ) )
+				}
+			};
+
+			//随机颜色
+			if( type === 'color' ){
+				var r = Math.floor( Math.random() * 256 );
+					g = Math.floor( Math.random() * 256 );
+					b = Math.floor( Math.random() * 256 );
+
+				return 'rgb( ' + r + ' , ' + g + ' , ' + b + ' )';
+			}
+
+			//指定颜色随机
+			if( type === 'chcolor' ){
+				if( !!param ){
+					var colorlist = []
+
+					for( var key in param){
+						colorlist.push( param[key] )
+					}
+
+					var num = parseInt( Math.random() * ( colorlist.length + 1 ));
+
+					return colorlist[num];
+				}else{
+					console.warn( '指定颜色不能为空' )
+				}
+			}
+
+		}
+		var clearCircle = function ( can , x , y , r ) {
+			for( var i = 0 ; i < Math.round( Math.PI * r ) ; i++ ) {
+
+				 var angle = ( i / Math.round( Math.PI * r ) ) * 360;
+
+					can.clearRect( x , y , Math.sin( angle * ( Math.PI / 180 ) ) * r , 
+										   Math.cos( angle * ( Math.PI / 180 ) ) * r );
+			}
+		}
+
+		circle = function( canvas , param ){
+			this.canvas = canvas;
+			this.param = param;
+			this.can = canvas.getContext( '2d' );
+
+			var can = canvas.getContext( '2d' );
+			//坐标，大小，颜色
+			var x = param.x,
+				y = param.y,
+				size = param.size,
+				color = param.color
+
+
+			can.fillStyle = color;
+			can.strokeStyle = color;
+			can.lineWidth = 4;
+			can.beginPath();
+		    can.arc( x , y , size , 0 , Math.PI * 2 );
+		    !param.border || param.border === 'none' ? can.fill() : can.stroke();
+		};
+
+		circle.prototype = {
+			constructor: circle,
+
+			//画圆
+			createcircle : function(){
+				var x = this.param.x,
+					y = this.param.y,
+					size = this.param.size,
+					color = this.param.color,
+					can = this.can;
+
+				//画圆
+				can.fillStyle = color;
+				can.beginPath();
+			    can.arc( x , y , size , 0 , Math.PI * 2 );
+			    can.fill();
+
+			},
+			upmovement : function(){
+				var me = this,
+					can = me.can,
+					canheight = me.param.canheight,
+					y = me.param.y,
+					x = me.param.x,
+					opacity = 1,
+					xswich = true,
+					color = me.param.color,
+					mul;
+
+				!me.param.border || me.param.border === 'none' ? mul = 1.2 : mul = 1.5;
+
+				var	range = me.param.size * mul,	//清除的矩形要大一点  不然清除不到
+					size = me.param.size,
+					canvasout = -size,
+					t;
+				var prex,//上一个圆的x坐标
+					prey,//上一个圆的y坐标
+					time = random( 'number' , { max : 35 , min : 30 } ),
+					xmove = random( 'number' , { max : 2 , min : 1 } ),
+					ymove = random( 'number' , { max : 3 , min : 2 } ),
+					movedistance = random( 'number' , { max : 100 , min : 15 } ),
+					opac = ( opacity * ymove ) /  (canheight + Math.abs( canvasout ) ),
+
+				t = setInterval( function(){
+					//prex = prex - range  /2;
+					//prey = prey - range / 2;
+					can.globalAlpha = opacity;
+					can.globalCompositeOperation
+					can.lineWidth = 4;
+					var angle = Math.round(Math.PI * size)
+					//调用方法清除面积
+					clearCircle( can,prex,prey,range)
+
+					can.fillStyle = color ;
+					can.strokeStyle = color;
+
+					can.beginPath();
+        			can.arc(x , y , size , 0 , Math.PI * 2 );
+        			//判断是绘制边框还是填充颜色
+        			!me.param.border || me.param.border === 'none' ? can.fill() : can.stroke();
+
+					// 判断小球是否移出画布
+			        if( y <= canvasout ){
+			            clearInterval( t );
+			            t = null;
+			        }
+
+			        //y轴移动
+			        prey = y;
+			        y -= ymove ;
+			        //x轴移动
+			        if( !!xswich ){
+			        	prex = x;
+			        	x -= xmove;
+			        }else{
+			        	prex = x;
+			        	x += xmove ;
+			        }
+
+			        if( x <= me.param.x - movedistance ){
+			        	xswich = false;	
+			        };
+
+			        if( x >=  me.param.x + movedistance ){
+			        	xswich = true
+			        }
+
+        			opacity -= opac;
+				} , time )
+			}
+		}
+
+		var draw = function( canwidth ,  canheight ){
+			//开始绘制小圆点
+			var canvas = document.getElementById( "canvas" ),
+				border = false,
+				time = 1500;
+
+			var t = setInterval( function(){
+				time = random( 'number' , { max : 2000 , min : 1000 } );
+				//如果是在当前页面才生成圆球
+				if( document.visibilityState == 'visible' ){
+					var length = random( 'number' ,  5 );
+
+					for(var i = 1 ; i < length ; i++ ){
+						var x = random( 'number' , { max : (canwidth - 30) , min : 30 } ),
+							color = random( 'color' ),
+							size = random( 'number' , { max : 10 , min : 8 } );
+
+						var unit = new circle( canvas , {
+							x : x,
+							y : canheight,
+							size : size,
+							color : color,
+							canheight : canheight,
+							border : border
+						});
+
+						unit.upmovement()
+					};
+				};
+				//空心圆控制器
+				!border ? border = true : border = false
+			} , time );
+
+		}
+
+		draw( 1350 , 200 );
+	</script>
+</body>
+</html>

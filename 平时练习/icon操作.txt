@@ -1,0 +1,14 @@
+字体制作：
+	1、制作图片字体网站： https://icomoon.io
+
+操作：
+	1、点击 	icoMoon App 按钮进入制作页面
+	2、点击左上角   import Icons 选择自己的图标文件（必须是svg文件）
+	3、点击右下角	Generate Font 按钮
+	4、进入图标页面 get Code 按钮会告诉怎么使用
+	5、点击顶部	Preferences 修改图标的 Font Name
+	5、点击右下角	Download 按钮下载图标
+
+需要的文件：
+	1、style.css
+	2、font文件夹下的文件

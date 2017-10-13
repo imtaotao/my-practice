@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>await/async</title>
+</head>
+<body>
+	<script>
+		// 回调金字塔的诞生就是因为需要上一次回调函数里得到的返回值
+		// 而async/await就能得到返回值，并进行下一次异步操作，所以可以处理的更像同步代码一样
+		function resolve2s( val ) {
+			return new Promise(resolve => {
+				setTimeout(() => {
+					val ++
+					resolve( val);
+				}, 2000 );
+			});
+		}
+
+		async function f1() {
+			var val = await resolve2s( 10 );
+
+			var valtwo = await resolve2s( val++ );
+
+			console.log( valtwo )
+		}
+		f1();
+	</script>
+</body>
+</html>

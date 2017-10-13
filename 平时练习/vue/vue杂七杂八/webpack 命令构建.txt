@@ -1,0 +1,36 @@
+1，mkdir 	xx							-- 新建文件夹
+2，cd  xx								--进入文件夹
+3，npm init 								--初始化npm
+4，npm install --save-dev webpack 					--项目装webpack
+5，新建文件（index.html，index.js什么的）
+6，"b": "webpack --progress --display-modules --colors"	--修改配置（直接npm run b进行打包）
+7，需要什么模块就npm install xx -g什么模块				--安装模块
+8，新建webpack.config.js文件，进行配置（配置详情见官网）			--配置参数
+
+使用webpack构建本地服务器（实时监测代码修改）
+	1，npm install --save-dev webpack-dev-server			--安装（注意必须和webpack装在一起）
+	2，"start" :  "webpack-dev-server --inline --hot"			--配置
+
+
+代码分离 
+	css分离（一）
+		1，npm install --save-dev css-loader style-loader		--使用 css-loader 和 style-loader
+		2，在webpack.config.js中配置使用loader			--配置
+	css分离（二）
+		1，将所有的css文件打包到一个总的style文件		--作用：汇总
+		2，npm install --save-dev extract-text-webpack-plugin	--使用 ExtractTextWebpackPlugin插件
+		3，new ExtractTextPlugin('styles.css')			--在webpack.config.js配置
+	
+	Libraries库分离（一，以moment库为例）
+		1，npm install --save moment				--安装moment库
+
+
+HtmlWebpackPlugin插件的使用
+	1，npm install --save-dev html-webpack-plugin			--安装（电脑只需要安装一次）
+	2，HtmlWebpackPlugin = require('html-webpack-plugin');		--引入
+	3，new HtmlWebpackPlugin({ template : './xx.html '})		--初始化插件（指定参数，例如模板）
+	4，可以在模板html里面用模板语法<%%> or <%= %>			--模板语法
+	5，htmlWebpackPlugin.files 和 htmlWebpackPlugin.options		--通过模板语法指定参数
+
+各种loder和插件
+3325942711

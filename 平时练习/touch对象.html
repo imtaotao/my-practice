@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+	<title>Document</title>
+	<style>
+	    body{
+	    	overflow: hidden;
+	    }
+		#dd{
+			height: 400px;
+			width: 100%;
+			background: #fff;
+			position: relative;
+			top: 618px;
+			overflow-x:hidden;
+		}
+		#aa{
+			height: 1600px;
+			width: 100%;
+			margin:auto;
+			background: #ffd328;
+			position: absolute;
+			top: 0;
+		}
+		.transiton{
+			transition:top 1s cubic-bezier(.26, .84, .45, .92) 0s;
+		}
+		#ee{
+			margin-top: 200px;
+		}
+		#rr{
+			position: absolute;
+			top: 800px;
+		}
+		#tt{
+			position: absolute;
+			top: 1200px;
+		}
+	</style>
+</head>
+<body>
+	<div id="dd">
+		<div id="aa" class="transiton">
+			<button>一</button><br>
+			<button id="ee">二</button>
+			<button id="rr">三</button>
+			<button id="tt">四</button>
+		</div>
+	</div>
+	<script src="jquery-2.0.3.js"></script>
+	<script>
+		//console.log(jQuery.fn.init.prototype.init.prototype.init('#dd')[0] == $('#dd')[0]);
+		//滑动事件对象
+		var panelScroll = {
+			phoneHeight : window.screen.height,
+			label : 40,
+			chilbottom : -942,
+			//定时器
+			t : null,
+			//父级的一些变量
+			oldTime : null,
+			newTime : null,
+			differ : null,
+			isScrolling : null,
+			direction : null,
+			nprey : null,
+			prey : null,
+			ntop : null,
+			btop : null,
+			isscroll : false,
+			//子级的一些变量
+			len : null,
+			slen : null,
+			elen : null,
+			offTop : null,
+			chilnprey : null,
+			chilprey : null,
+			chilntop : null,
+			chilbtop : null,
+			childirection : null,
+			dif : null,
+			chilstartime : null,
+			chilmovetime : null,
+			chilendtime : null,
+			citop : null,
+			initlen : 0,
+			toTop : null,
+			init : function () {												//初始化方法
+				$('body').css('height',this.phoneHeight)						//body的高度设置为设备屏幕的高
+				$('#dd').css('height',this.phoneHeight)							//级元素的高度设置为设备屏幕的高
+				$('#dd').animate({												//默认出现在屏幕的一半位置
+					top : this.phoneHeight/2
+				},500)
+				//去掉子元素的touch事件
+		        $('#aa')[0].removeEventListener('touchstart',this.chilstart,false)
+		        $('#aa')[0].removeEventListener('touchmove',this.chilmove,false)
+		        $('#aa')[0].removeEventListener('touchend',this.chilend,false)
+		        //给父级div绑定事件
+				this.onbind('#dd',"touchstart",this.startfun);
+				this.onbind('#dd',"touchmove",this.movefun);
+      			this.onbind('#dd',"touchend",this.endfun);
+			},
+			onbind : function(el,ename,fun) {
+				if(el === document){
+					el.addEventListener(ename,fun)
+				}else{
+					$(el)[0].addEventListener(ename,fun);
+				}
+			},
+			startfun : function (e) {											//父级滑动开始时
+				var me = panelScroll;
+				//清楚滑动过程中的的距离计算，因为可能没有移动
+				me.direction = null;
+				//阻止冒泡和阻止默认滑动
+				e.preventDefault();
+				e.stopPropagation();
+				var touch = e.changedTouches[0];
+				me.isScrolling = {x:touch.pageX,y:touch.pageY};
+				me.oldTime = new Date().getTime()
+				//开始touch事件时，初始化prey
+				me.prey = me.isScrolling.y
+				//初始化top值
+				me.ntop = parseInt($('#dd').css('top')); //获取元素的topz值
+			},
+			movefun : function(e) {												//父级滑动过程中
+				var me = panelScroll;
+				e.preventDefault();
+				e.stopPropagation();
+				//上一次的touchy值，默认取开始的时候
+				me.nprey = me.prey
+				//上一次的top值
+				var touch = e.changedTouches[0];
+				me.direction  = {x:touch.pageX - me.isScrolling.x,y:touch.pageY - me.isScrolling.y};
+				//得到这一个的touchy值
+				var mepre =  Math.abs(touch.pageY);
+				//把这次得到的touchy值赋值给prey
+				me.prey = Math.abs(touch.pageY);
+				// me.newTime = new Date().getTime()
+				// me.differ = me.newTime - me.oldTime
+				if(Math.abs(me.direction.x) < 100){
+					// 差值，这次的减上次的Y值
+					var dif = mepre - me.nprey;
+					var itop = me.ntop + dif;
+						me.ntop = itop
+					if(itop > (me.phoneHeight-me.label)){itop = (me.phoneHeight-me.label)}
+					if(itop < 0){itop = 0}
+					$('#dd').css('top',itop)
+				}
+			},
+			endfun : function (e) {												//父级滑动结束时
+				var me = panelScroll;
+      			e.stopPropagation();
+				e.preventDefault()
+				me.newTime = new Date().getTime()
+				me.differ = me.newTime - me.oldTime
+				//上滑，横滑动小于100
+				if(me.direction != null){
+					var domtop = parseInt($(this).css('top'))
+					domtop <=  me.phoneHeight/2 ? domtop = true : domtop = false;
+					//上半部分
+					if(domtop){
+						me.parentmovesmal('0',(me.phoneHeight/2),true);
+					}
+					//下半部分
+					if(domtop == false){
+						me.parentmovesmal((me.phoneHeight/2),(me.phoneHeight-me.label));
+					}
+					//=======================================下是200毫秒以外====================================
+					//在上半部分时
+					if(domtop){
+						me.parentmove((me.phoneHeight/2-50),me.phoneHeight/2,'0',true);
+					}
+					//在下半部分时
+					if(domtop == false){
+						var thisheight;
+						me.direction.y < 0 ? thisheight = me.phoneHeight-100 : thisheight = me.phoneHeight/2+50;
+						me.parentmove(thisheight,(me.phoneHeight - me.label),(me.phoneHeight/2))
+					}
+				}
+
+			},
+			parentmovesmal :function(tTop,bTop,chilfun) {
+				var me = this;
+				//上滑
+				if(chilfun){
+					if(me.differ < 200 && me.direction.y < 0 && Math.abs(me.direction.x) < 100){
+						$('#dd').animate({
+							top : tTop
+						},350,me.animateEnt());	
+					}
+				}else{
+					if(me.differ < 200 && me.direction.y < 0 && Math.abs(me.direction.x) < 100){
+						$('#dd').animate({
+							top : tTop
+						},350);	
+					}
+				}
+				//下滑
+				if(me.differ < 200 && me.direction.y > 0 && Math.abs(me.direction.x) < 100){
+					$('#dd').animate({
+						top : bTop
+					},350,function(){
+						$('#dd').removeClass('hidX')
+					});	
+				}
+			},
+			parentmove : function( thisheight , tTop , bTop , chilfun ) {
+				var me = this
+				//放下来
+				if(me.differ >= 200 && me.ntop >= thisheight){
+					$('#dd').animate({
+						top : tTop
+					},350);
+				}
+				//放上去
+				if(chilfun){
+					if(me.differ >= 200 && me.ntop < thisheight){
+						$('#dd').animate({
+							top : bTop
+						},350,me.animateEnt());
+					}
+				}else{
+					if(me.differ >= 200 && me.ntop < thisheight){
+						$('#dd').animate({
+							top : bTop
+						},350);
+					}
+				}
+			},
+			animateEnt : function() {										//子级动画函数
+				//静止父级元素滑动（清除touch事件）
+				$('#dd')[0].removeEventListener('touchstart',this.startfun,false)
+				$('#dd')[0].removeEventListener('touchmove',this.movefun,false)
+				$('#dd')[0].removeEventListener('touchend',this.endfun,false)
+				//绑定子div事件
+				this.onbind('#aa','touchstart',this.chilstart)
+				this.onbind('#aa','touchmove',this.chilmove)
+				this.onbind('#aa','touchend',this.chilend)
+			},
+			chilstart : function(e) {
+				var me = panelScroll;
+				//清除定时器
+				clearInterval(me.t);
+				me.t = null;
+				//取消冒泡与浏览器默认操作
+				e.preventDefault();
+				e.stopPropagation();
+				var touch = e.changedTouches[0];
+				me.slen = {x:touch.pageX,y:touch.pageY};
+				me.chilprey = me.slen.y
+				me.chilntop = parseInt($('#aa').css('top'));
+				$('#aa').css('transition-property','none')
+				//再次点击的时候取消滑动,并且关掉触发父级事件的开关（以防止惯性滑动动画没有走完）
+				$('#aa').css('top',me.chilntop)
+				me.isscroll = false;
+				//得到开始点击时的时间值
+				me.chilstartime = new Date().getTime()
+			},
+			chilmove : function(e) {
+				var me = panelScroll;
+				e.preventDefault();
+				e.stopPropagation();
+				//只有移动过后才打开恢复默认的开关
+				me.isscroll = true;
+				//上一次的touchy值，默认取开始的时候
+				me.chilnprey = me.chilprey
+				//现在的top
+				var touch = e.changedTouches[0];
+				me.childirection  = {x:touch.pageX - me.slen.x,y:touch.pageY - me.slen.y};
+				//得到这一个的touchy值
+				var mepre =  Math.abs(touch.pageY);
+				//把这次得到的touchy值赋值给prey
+				me.chilprey = Math.abs(touch.pageY);
+				//开始移动
+				if(Math.abs(me.direction.x) < 100){//横移小于100时
+					me.dif = mepre - me.chilnprey;	//得到这次与上次滑动之间的差值
+						me.citop = me.chilntop +me.dif;
+						me.chilntop = me.chilntop + me.dif;
+						if(me.citop > 0){me.citop = 0}
+						if(me.citop < me.chilbottom){me.citop = me.chilbottom}
+						$('#aa').css('top',me.citop);
+				}
+				//得到最后一次移动的时间，用来计算与手指抬起时的时间差
+				me.chilmovetime = new Date().getTime();
+			},
+			chilend : function(e) {
+				var me = panelScroll;
+				e.preventDefault();
+				e.stopPropagation();
+				var touch = e.changedTouches[0];
+				me.elen = {x:touch.pageX,y:touch.pageY};
+				//移动的距离,initlen是上一次距离顶部的距离
+				me.len = me.elen.y - me.slen.y;
+				//距离顶部的距离
+				me.offTop = me.initlen + me.len;
+				me.initlen = me.offTop;
+				//得到移动结束时用的时间值
+				me.chilendtime = new Date().getTime();
+				var timedif = me.chilendtime - me.chilstartime;
+				//计算最后抬起手指用的时间
+				var uptime = me.chilendtime - me.chilmovetime
+				//得到滑动的速度
+				var speed = Math.abs(me.citop)/timedif
+				var mul = 0,mulTime = 0;
+				//确保滑动了(滑动距离大于10px而且手指滑动结束后停留在屏幕的时间小于15毫秒，才能进行滑动操作)
+				me.toTop = parseInt($('#aa').css("top"));
+				if(Math.abs(me.len) > 10 && uptime < 15){
+					//如果速度大于1的话，距离就等于速度的3次方
+					if(speed >= 1){
+						mul = Math.pow(speed,3) * 20;
+						mulTime = mul/speed
+					}else{
+						mul = 0
+						mulTime = 0
+					}
+					//得到子div的惯性滑动的距离
+					me.dif >= 0 ? mul = mul : mul = -mul;
+					var thisTop = parseInt($('#aa').css('top')) + mul;
+					//如果top值大于0就还原为0,小于-1200就还原为-1200
+					if(thisTop >= 0){thisTop = 0}
+					if(thisTop <= me.chilbottom){thisTop = me.chilbottom}
+					//给当前元素改变transiton
+					$('#aa').css('transition-property','top')
+					//$('#aa').css('transition-duration',mulTime)
+					//设置滑动的top值
+					$('#aa').css({"top" : thisTop})
+					me.toTop = thisTop;
+				}
+				//如果offTop等于0，就恢复父级的滑动
+				//如果有滑动就等滑动结束再恢复
+				var setTime = 150
+				mul > 0 ? setTime = (setTime + 1000) : setTime = setTime;
+				//滑动结束后打开开关
+				me.isscroll = true;
+				me.t = setTimeout(function(){
+					if(me.toTop >= 0 && me.isscroll){
+						//添加父级元素的touch事件
+						me.onbind('#dd',"touchstart",me.startfun)
+						me.onbind('#dd',"touchmove",me.movefun)
+						me.onbind('#dd',"touchend",me.endfun)
+						//去掉子元素的touch事件
+						$('#aa')[0].removeEventListener('touchstart',me.chilstart,false)
+						$('#aa')[0].removeEventListener('touchmove',me.chilmove,false)
+						$('#aa')[0].removeEventListener('touchend',me.chilend,false)
+						//面板拉下来
+						$('#dd').animate({
+								top : me.phoneHeight/2
+							},350,function(){
+								$('#dd').removeClass('hidX')
+							});	
+						//关掉开关
+						me.isscroll = false;
+					}
+				},setTime)
+			}
+		};
+		//初始化	
+		panelScroll.init();
+	</script>
+</body>
+</html>

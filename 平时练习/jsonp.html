@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>jsonp</title>
+</head>
+<body>
+	<script>
+		function jsonp( url, {data, timeout = 10000, callbackName = `jsonp${Date.now()}`, success, fail} ) {
+	        // 必须指定回调
+	        if( !success && !fail ) return;
+	        let script = document.createElement( 'script' ),
+	            type = url.includes( '?' ) ? '&' : '?',
+	            val = '';
+
+	        // 处理传递数据
+	        if( !!data ) {
+	            for( let k in data ) {
+	                val += `&${k}=${data[k]}`
+	            }
+	        };
+
+	        // 隐藏dom，提高效率
+	        script.style.display = 'none';
+
+	        //请求地址
+	        script.src = url + `${type}callback=${callbackName}` + val;
+
+	        //添加
+	        document.head.appendChild( script );
+	        document.head.removeChild( script );
+
+	        // 成功回调添加回调到全局
+	        window[callbackName] = function ( res ) {
+	            !!success && success( res );
+	            !!fail && ( fail = undefined );
+	            window[callbackName] = undefined;
+	        };
+
+	        // 失败回调
+	        script.onerror = function ( e ) {
+	            !!fail && fail( e );
+	            !!fail && ( fail = undefined );
+	            window[callbackName] = undefined;
+	        };
+
+	        // 超过请求时间
+	        setTimeout( () => {
+	            !!fail && fail( '超过请求时间。。。' );
+	            !!fail && ( fail = undefined );
+	            window[callbackName] = undefined;
+	        }, timeout );
+	    };
+
+	    // 测试（接口网上随便找的一个天气预报）
+	    // ==============================================================
+	    jsonp( 'https://api.asilu.com/weather/', {
+	    	data : {
+	    		name : '长沙'
+	    	},
+	    	callbackName : 'test',
+	    	timeout : 10000,
+	    	success : function( res ) {
+	    		console.log( res )
+	    	},
+	    	fail : function( res ) {
+	    		console.log( res )
+	    	}
+	    })
+	</script>
+</body>
+</html>

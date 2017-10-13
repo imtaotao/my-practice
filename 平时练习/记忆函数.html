@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+</head>
+<body>
+	<script>
+		var fun = function () {
+			var cache = {}
+
+			return function ( args ) {
+				if( !!cache.args ) {
+					return args
+				};
+				for( var i = 0; i < 100; i++ ) {
+					args += 10 + '结束';
+				}
+				cache.args = args;
+				return args
+			}
+		}();
+
+		var noFun = function ( args ) {
+			for( var i = 0; i < 100; i++ ) {
+				args += 10 + '结束';
+			}
+			return args
+		};
+
+
+		console.time( '有存储' )
+		for( var i = 0; i < 100000; i++ ) {
+			fun( 20 )
+		}
+		console.timeEnd( '有存储' );
+
+		console.time( '无有存储' )
+		for( var i = 0; i < 100000; i++ ) {
+			noFun( 20 )
+		}
+		console.timeEnd( '无有存储' )
+	</script>
+</body>
+</html>

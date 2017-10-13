@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>生成随机数</title>
+</head>
+<body>
+	<script>
+		var rand = ( function rand() {
+			var today = new Date(),
+			seed = today.getTime();
+
+			function rnd(){
+				seed = ( seed * 9301 + 49297 ) % 233280;
+				return seed / ( 233280.0 );
+			};
+			return function rand(number){
+				return Math.ceil(rnd(seed) * number);
+			};
+
+		} )();
+
+		console.log( rand(1000) )
+	</script>
+</body>
+</html>

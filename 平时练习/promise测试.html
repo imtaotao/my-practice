@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+</head>
+<body>
+	<button id="btn">点击</button>
+	<script>
+
+		var pro = new Promise( function ( resolve, reject ) {
+			var bt = document.getElementById( 'btn' ),
+				num = 1;
+
+			setTimeout(function(){
+				resolve( [num, bt] )
+			} , 3000 )
+		})
+
+		function asyn( res ){
+			console.log( res )
+
+			res[1].addEventListener( 'click' , function() {
+				console.log( res )
+			})
+
+			res[0] += 100;
+			return Promise.resolve( res[0] )
+
+		}
+
+		function asyn2( res ) {
+			for( let i = 0 ; i < 5 ; i++ ) {
+				console.log( res )
+			}
+		}
+
+		pro.then( asyn ).then( asyn2 )
+			
+		// =============================================
+		// function each( obj , fun ) {
+		// 	var name,
+		// 		i = 0,
+		// 		promises = [],
+		// 		isobj = Object.prototype.toString.call( obj ) === "[object Object]";
+
+		// 	if( !!isobj ) {
+		// 		for ( name in obj ) {
+		// 			var value = fun.call( obj[name] , i , obj[name] );
+
+		// 			if( value === false ) {
+		// 				break
+		// 			}
+		// 		}
+		// 	}else{
+		// 		for( ; i < obj.length ; i++ ) {
+		// 			let value,
+
+		// 			pro = Promise.resolve.call( obj[i] , i , obj[i] );
+
+		// 			promises.push( pro )
+		// 		}
+		// 		return Promise.all( promises )
+		// 	}
+		// }
+
+		// var data = ['a','af','ag','we','hf'];
+
+		// each( data ).then( function( v ) {
+		// 	console.log( v )
+		// }).catch( function( err ) {
+		// 	console.log(err)
+		// })
+	</script>
+</body>
+</html>

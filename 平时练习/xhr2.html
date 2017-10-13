@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>xhr2</title>
+	<style>
+		#updata{
+			width: 100px;
+			cursor: pointer;
+			background: #2f3411;
+			color: #fff;
+			text-align: center;
+			border-radius: 5px;
+		}
+	</style>
+</head>
+<body>
+	<input type="file" id="fileValue">
+	<p id="updata">上传</p>
+	<script>
+		function $( select ){
+			var el = document.querySelectorAll( select );
+				el.length == 0 ? el = null :
+				el.length == 1 ? el = el[0] :
+								 el = el;
+			return el;
+		}
+
+		$.ajax = function( parm ) {
+			var xhr = new XMLHttpRequest(),
+				origin = window.location.origin;
+			( !window.location.host || (window.location.host === "") ) && ( origin = null );
+
+			parm.data.append( 'origin' , origin )
+
+			xhr.open( 'POST' , parm.url , true );
+			xhr.withCredentials = true;
+			xhr.onload = function() {
+				parm.success.call( this , xhr.response );
+			};
+			xhr.send( parm.data );
+		}
+
+		// ==========================
+		var fd = new FormData(),i = 0;
+		$( '#fileValue' ).onchange = function( e ) {
+			var name = 'userfile' + i++;
+			fd.append( name , this.files[0] )
+		}
+
+		$( '#updata' ).addEventListener( 'click' , function( e ) {
+			$.ajax({
+				url : 'http://192.168.2.251/fileupdata/uploadxhr2.php',
+				data : fd,
+				success : function( res ) {
+					console.log(res)
+					i = 0;
+				}
+			})
+		})
+
+	</script>
+</body>
+</html>

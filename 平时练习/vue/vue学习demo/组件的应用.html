@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>组件的应用</title>
+	<script src="../vue-frame/vue.js"></script>
+</head>
+<body>
+	<ol id="app">
+	  <!-- 创建一个 todo-item 组件的实例 -->
+	  <todo-item v-bind:todo='text'></todo-item>
+	</ol>
+	<div id="filter">{{ rawId | rawId( 1, 2) }}</div>
+
+	<div id="example">
+		<p>Original message: "{{ message }}"</p>
+		<p>Computed reversed message: "{{ reversedMessage }}"</p>
+		<p>{{ oldmessage }}</p>
+	</div>
+	
+	<ul id="zj">
+		<tao-tao></tao-tao>
+	</ul>
+	<div id="tt">
+		<button @click.once="todo($event,1,2)">点击</button>
+		<textarea  v-model="text" id="textar"></textarea>
+		<div>{{a}}</div>
+		<input id="inp" v-model.number='a' :value='pick'>
+	</div>
+	<input
+		id="radioId"
+		type="checkbox"
+		v-model="toggle"
+		v-bind:true-value="a"
+		v-bind:false-value="b"
+	>
+	<script>
+		var vmm = new Vue({
+			el : '#tt',
+			data : {
+				text : 'this is textarea',
+				pick : 'is pick',
+				aa : 'is a'
+			},
+			computed : {
+				a : {
+					get : function() {
+						return this.aa
+					},
+					set : function( val ) {
+						console.log( val )
+						return 	this.aa = val
+					}
+				}
+			},
+			methods : {
+				todo : function( e, n, o ) {
+					console.log( e, n, o )
+				}
+			}
+		})
+
+		var parms = {
+			text : '我是组件'
+		}
+
+		Vue.component( 'todo-item', {
+			props : ['todo'],
+			template : '<li>{{todo}}</li>'
+		})
+
+		var vm = new Vue({
+			el : '#app',
+			data : parms
+		})
+
+		vm.$watch( 'text', function (newVal, oldVal) {
+			console.log( this )
+		})
+
+
+		var vm1 = new Vue({
+			el :　'#filter',
+			data : {
+				rawId : '我是rowId',
+			},
+			filters : {
+				rawId : function( val, e, d ) {
+					console.log( val, e, d  )
+					return '芳芳'
+					// val = ' adsf '
+				}
+			}
+		})
+
+		var vm2 = new Vue({
+			el: '#example',
+			data: {
+				message: 'Hello',
+				oldmessage : '涛'
+			},
+			computed: {
+				// 如果data里面定义了的话，在cmputed里面就不能定义，data的优先级高一些
+				// a computed getter
+				reversedMessage: {
+					get : function() {
+						return this.message.split('').reverse().join('');
+					},
+					set : function( newValue ) {
+						this.oldmessage = newValue + '芳'
+					}
+				}	
+			}
+		})
+
+
+		// 数据绑定
+		var vm3 = new Vue({
+			el : '#radioId',
+			data : {
+				toggle : '',
+				a : '我是A',
+				b : '我是B'
+			}
+		})
+
+
+		// 测试组件
+		var myVm = new Vue({
+			el : '#zj',
+			components : {
+				'tao-tao' : {
+					template : '<div>我是组件涛</div>'
+				}
+			},
+			computed : {
+				comtodo : function( a ) {
+					console.log( a )
+				}
+			},
+			methods : {
+				todo : function( a ) {
+					console.log( a )
+				}
+			}
+		})
+	</script>
+</body>
+</html>

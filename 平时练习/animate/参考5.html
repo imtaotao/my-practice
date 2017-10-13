@@ -1,0 +1,247 @@
+<!doctype html>
+<html>
+<head>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
+	<style type="text/css">
+       button{
+       	   display: block;
+       }
+	</style>
+	<script src="http://code.jquery.com/jquery-latest.js"></script>
+</head>
+<body>
+
+<button id="one">jQuery动画的模拟实现:left:50</button>
+<button id="two">jQuery动画的模拟实现:left:500</button>
+
+<ul id="book"  alt="" style="background:red;opacity:1;position: relative; left: 300px;width:200px;height:100px;display:inline;"></ul>
+
+
+<script type="text/javascript">
+
+
+	var book = document.getElementById( 'book' );
+	var $book = $( '#book' );
+	var i = 10
+	while( i ) {
+		$book.append( "<li>11</li>" )
+		i--;
+	}
+
+
+	////////////
+	//创建动画缓动对象 //
+	////////////
+	// value 属性值
+	// prop 属性名
+	// 动画参数
+	function Tween( value, prop, animation ) {
+		this.elem    = animation.elem;
+		this.prop    = prop;
+		this.easing  = "swing"; //动画缓动算法
+		this.options = animation.options;
+		//获取初始值
+		this.start   = this.now = this.get();
+		//动画最终值
+		this.end     = value;
+		//单位
+		this.unit    = "px"
+	}
+
+	function getStyles( elem ) {
+		return elem.ownerDocument.defaultView.getComputedStyle( elem, null );
+	};
+
+	function swing( p ) {
+		return 0.5 - Math.cos( p * Math.PI ) / 2;
+	}
+
+	Tween.prototype = {
+		//获取元素的当前属性
+		get: function() {
+			// 先得到这个元素的所有属性
+			var computed = getStyles( this.elem );
+
+			// 然后得到传进来需要动画的属性
+			var ret = computed.getPropertyValue( this.prop ) || computed[this.prop];
+
+			return parseFloat( ret );
+		},
+		//运行动画
+		run:function( percent ){
+			var eased
+
+			//根据缓动算法改变percent
+			this.pos = eased = swing( percent );
+
+			//获取具体的改变坐标值
+			this.now = ( this.end - this.start ) * eased + this.start;
+
+			//最终改变坐标（动态改变元素css属性值）
+			this.elem.style[this.prop] = this.now + "px";
+
+			return this;
+		}
+	}
+
+
+	////////
+	//动画类 //
+	////////
+	//	elem 元素
+	//	properties 需要动画的属性值集合（一个对象）
+	//	options 一些参数，我也不晓得是什么
+	function Animation( elem, properties, options, callback ) {
+		//动画对象
+		var animation = {
+			elem            : elem,
+			props           : properties,
+			originalOptions : options,
+			options         : options,
+			startTime       : Animation.fxNow || createFxNow(),//动画开始时间
+			tweens          : [] //存放每个属性的缓动对象，用于动画
+		}
+
+		//生成属性对应的动画算法对象
+		for ( var k in properties ) {
+			// tweens保存每一个属性对应的缓动控制对象
+			animation.tweens.push( new Tween( properties[k], k, animation ) )
+		}
+		//动画状态
+		var stopped;
+		//动画的定时器调用包装器
+		var tick = function() {
+			if ( stopped ) {
+				return false;
+			}
+			//动画时间算法
+			var currentTime = Animation.fxNow || createFxNow,
+				//运动时间递减
+				remaining = Math.max( 0, animation.startTime + animation.options.duration - currentTime ),
+				temp = remaining / animation.options.duration || 0,
+				percent = 1 - temp;	// 这个才是当前运动到最终的时间比（百分之多少）
+
+			var index = 0,
+				length = animation.tweens.length;
+
+			//执行动画改变（循环是因为要改变所有属性的值）
+			for ( ; index < length; index++ ) {
+				//percent改变值	（ 就是根据百分比动态改变值 ）
+				animation.tweens[index].run( percent );
+			}
+
+			//是否继续，还是停止
+			if ( percent < 1 && length ) {
+				// return剩下的时间值
+				return remaining;
+			} else if( percent == 1 && length ) {
+				// 动画结束后的回调
+				!!callback && callback.call( elem )
+				return remaining;
+			}else{
+				//停止
+				return false;
+			}
+
+		}
+		tick.elem = elem;
+		tick.anim = animation
+
+		Animation.fx.timer( tick )
+	}	
+
+	//创建开始时间
+	function createFxNow() {
+		setTimeout(function() {
+			Animation.fxNow = undefined;
+		});
+		return ( Animation.fxNow = Date.now() );
+	}
+
+
+	//用于定时器调用
+	Animation.timers = []
+
+	Animation.fx = {
+		//开始动画队列（ 参数是时间值，就是上面tick return的值）
+		timer: function( timer ) {
+			// 先入栈
+			Animation.timers.push(timer);
+
+			// 如果这个tick函数的返回值不是fasle
+			if ( timer() ) {
+				//开始执行动画
+				Animation.fx.start();
+			} else {
+				// 否则就出栈
+				Animation.timers.pop();
+			}
+		},
+		//开始循环（通过定时器循环监测）
+		start: function() {
+			if ( !Animation.timerId ) {
+				Animation.timerId = setInterval( Animation.fx.tick, 13 );
+			}
+		},
+		//停止循环
+		stop:function() {
+			clearInterval( Animation.timerId );
+			Animation.timerId = null;
+		},
+		//循环的的检测
+		tick: function() {
+			var timer,
+				i = 0,
+				timers = Animation.timers;
+
+			Animation.fxNow = Date.now();
+
+			// 循环队列（这个例子中队列中只有一个函数）
+			for ( ; i < timers.length; i++ ) {
+				timer = timers[i];
+				// 如果这个函数return fasle的话（这里可通过time()）
+				if ( !timer() && timers[i] === timer ) {
+					//如果完成了就删除这个动画
+					timers.splice( i--, 1 );
+				}
+			}
+
+			if ( !timers.length ) {
+				// 队列中所有函数都执行完毕
+				Animation.fx.stop();
+			}
+			Animation.fxNow = undefined;
+		}
+	}
+
+	$( "#one" ).click( function(){
+		Animation( book, {
+			left: '50'
+		}, {
+			duration: 2000
+		})
+	});
+
+	$( "#two" ).click( function() {
+		Animation( book, {
+			left: '500'
+		}, {
+			duration: 2000
+		},function(){
+			console.log( this )
+		})
+
+		// Animation( book, {
+		// 	left: '50'
+		// }, {
+		// 	duration: 2000
+		// },function(){
+		// 	console.log( this )
+		// })
+	});
+
+
+</script>
+
+</body>
+</html>

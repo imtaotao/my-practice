@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+	<script src="../vue-frame/vue.js"></script>
+</head>
+<body>
+	<div id="app">
+		{{world}}
+	</div>
+
+	<div id="app2">
+		<span v-bind:title='infor' v-if='seen'>
+			鼠标悬停几秒钟查看此处动态绑定的提示信息！
+		</span>
+	</div>
+
+	<div id="app-4">
+	  	<ol>
+	    	<li v-for="k in todos">
+	      	{{ k.text }}
+	    	</li>
+	  	</ol>
+	  	<p>{{ message }}</p>
+  		<button v-on:click="reverseMessage">逆转消息</button>
+  		<p>{{aa}}</p>
+	</div>
+	<script>
+		var app = new Vue({
+			el : '#app',
+			data : {
+				world : 'hello world!'
+			}
+		})
+
+		var app2 = new Vue({
+			el : "#app2",
+			data : {
+				infor : '页面加载于' + new Date,
+				seen : true
+			}
+		})
+
+		var app4 = new Vue({
+			el : '#app-4',
+			data : {
+				todos : [
+					{text : '你好'},
+					{text : '芳芳'},
+					{text : '涛涛'}
+				],
+				message : 'helloWorld!'
+			},
+			methods : {
+				reverseMessage : function ( e ) {
+					this.message = this.message.split( '' ).reverse().join( '' )
+				}
+			},
+			computed : {
+				aa : {
+					Vue.$filter( ['fdf', 'areer'])
+				}
+			}
+		})
+
+		Vue.prototype.$filter = function ( arr ) {
+            var param = '?'
+            arr.forEach( function ( val , i ) {
+                param += i !== arr.length - 1 ? val + '=' + res.data.jsonData[val] + '&' : val + '=' + res.data.jsonData[val]
+            })
+            return param;
+        };
+	</script>
+</body>
+</html>

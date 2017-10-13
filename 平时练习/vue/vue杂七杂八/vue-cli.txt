@@ -1,0 +1,19 @@
+npm install vue-cli			--安装
+vue init webpack xx（项目名字）		--安装模板（webpack模板）
+npm install				--安装依赖
+npm run dev				--启动服务器（npm版本3.0以上）
+
+项目目录文件说明
+build与config				--webpack的文件
+node_modules				--目录是npm安装包
+src					--目录是我们项目的源码
+static					--目录是存放的静态资源
+.babelrc				--babel转换器配置文件
+.editorcomfig				--编辑器的配置文件
+.eslintignore				--指定忽略语法检查的目录文件
+.eslintrc.js				--eslint的配置文件
+.gitignore				--git仓库忽略，不会提交到仓库
+.postcssrc.js				--
+index.html				--入口文件
+package.json				--项目配置文件
+README.md				--项目描述文件

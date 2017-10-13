@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>animate方法封装</title>
+	<style>
+		body{
+			transform-style : preserve-3d;
+			perspective : 1000px;
+		}
+		#dd{
+			width: 150px;
+			height: 150px;
+			line-height: 150px;
+			font-size: 30px;
+			color: #fff;
+			text-align: center;
+			background: rgba(0,0,0,.5);
+			position: absolute;
+			cursor:pointer;
+			left: calc(50% - 50px);
+			bottom:  calc(50% - 50px);
+			border-radius: 5px;
+			transform: translate3d(10px,130px,-1300px);
+		}
+		#aa{
+			width: 150px;
+			height: 150px;
+			line-height: 150px;
+			font-size: 30px;
+			color: #fff;
+			text-align: center;
+			background: rgba(0,0,0,.5);
+			position: absolute;
+			cursor:pointer;
+			left: calc(50% - 50px);
+			bottom:  calc(50% - 50px);
+			border-radius: 5px;
+			transform: translate3d(200px,330px,-1300px);
+		}
+	</style>
+</head>
+<body>
+	<div id="dd">连续点击</div>
+	<div id="aa">连续点击</div>
+	<script>
+		// 缓动对象，用于封装每个单独属性的动作
+		function tweens( val, key, option ) {
+			this.elem = option.elem;			// 元素
+			this.key = key;						// 属性名
+			this.end = val;						// 最终的目标属性值
+			this.start = this.now = this.get();	// 目标的开始值
+		};
+
+		tweens.prototype = {
+			get : function(){
+				// 先得到这个元素的所有样式
+				var computed = this.getStyles( this.elem ),
+					endProp;
+				
+				// 得到具体的样式
+				endProp = computed.getPropertyValue( this.key ) || computed[this.key];
+
+				return !isNaN( parseInt( endProp ) ) ? parseInt( endProp ) : this.getTransform( endProp );
+			},
+
+			run : function( percent ) {
+				// 总距离 * 百分比 + 开始的距离 = 元素应该在的位置
+				if( !this.start.length ) {
+					this.now = ( this.end - this.start ) * this.swing( percent ) + this.start;
+
+					//动态改变元素css属性值
+					this.attrJudg( this.now );
+
+				}else{
+					this.nowX = ( this.end[0] - this.start[0] ) * this.swing( percent ) + this.start[0];
+					this.nowY = ( this.end[1] - this.start[1] ) * this.swing( percent ) + this.start[1];
+					this.nowZ = ( this.end[2] - this.start[2] ) * this.swing( percent ) + this.start[2];
+
+					//动态改变元素css属性值
+					this.attrJudg( [this.nowX + 'px', this.nowY + 'px', this.nowZ + 'px'] );
+
+				}
+
+				return this;
+			},
+
+			attrJudg : function( now ) {
+				this.key != 'transform' ? this.elem.style[this.key] = now + "px" : 
+							this.elem.style[this.key] = 'translate3d('+ now[0]+','+now[1]+','+now[2]+')';
+			},
+
+			// 获取元素样式
+			getStyles : function( elem ) {
+				return elem.currentStyle ? elem.currentStyle : getComputedStyle( elem );
+			},
+
+			// 动画公式（这个照抄的）
+			swing : function( percent ) {
+				return 0.5 - Math.cos( percent * Math.PI ) / 2;
+			},
+
+			// 专门为tranform写的方法（很烦，暂时只能这样写了）
+			getTransform : function( transform ) {
+				var	threeNum = transform.split( ',' ),
+					length = threeNum.length,
+					x,y,z;
+
+				if( length > 6 ) {
+					x = Number( threeNum[length - 4] ),
+					y = Number( threeNum[length - 3] ),
+					z = Number( threeNum[length - 2] );
+				}else{
+					x = Number( threeNum[length - 2] );
+					y = Number( threeNum[length - 1].split( ')' )[0] );
+					z = 0;
+				}
+				
+				return [x, y, z]
+			},
+
+			isArr : function( val ) {
+				return Object.prototype.toString.call( val ) === '[object Array]';
+			}
+
+		};
+
+		// 动画主体函数
+		var Animate = function( elem, prop, time, callback, nextFun ) {
+			// 把动画结束后应该调用的俩函数存起来
+			Animate.callback = callback;
+			Animate.nextFun = nextFun;
+			Animate.elem = elem;
+
+			// 先把参数存起来
+			var animateOption = {
+				elem            : elem,
+				prop            : prop,
+				originalTime    : time,
+				time 	        : time,
+				startTime       : Animate.fxNow || createFxNow(),//动画开始时间
+				tweens          : [] //存放每个属性的缓动对象，用于动画
+			};
+			// 看看传了几个prop
+			for( var key in prop ) {
+				animateOption.tweens.push( new tweens( prop[key], key, animateOption ) );
+			}
+
+			// tick 函数，动起来的逻辑
+			var tick = function() {
+				var currentTime = Animate.fxNow || createFxNow(),
+					// 保证剩余的时间不会小于0
+					remaining = Math.max( 0, animateOption.startTime + animateOption.time - currentTime ),
+					temp = remaining /  animateOption.time || 0,
+					percent = 1 - temp;
+
+				// 我们要遍历了，让每个属性都动起来，调用他们的缓动对象，go,go,go ~~
+				animateOption.tweens.forEach(function( val ) {
+					val.run( percent );
+				});
+
+				// 我们判断停止还继续，来吧
+				if( percent <= 1 && !!animateOption.tweens.length ) {
+					return remaining;
+				}else{
+					return false;
+				}
+			}
+			Animate.fx.timer( tick )
+		};
+
+		// 获取时间（生成时间后清空）
+		function createFxNow() {
+			setTimeout(function(){
+				Animate.fxNow = undefined;
+			})
+			return ( Animate.fxNow = Date.now() )
+		}
+
+		//用于定时器调用
+		Animate.timers = [];
+
+		Animate.fx = {
+			timer : function( tickFun ) {
+				// 先入栈
+				Animate.timers.push( tickFun );
+
+				// 如果没有返回false就start，否则就出栈
+				!!tickFun() ? this.start() : Animate.timers.pop( tickFun );
+			},
+
+			start : function() {
+				Animate.timerId = setInterval( Animate.fx.monitor, 16.6 );
+			},
+
+			stop : function() {
+				clearInterval( Animate.timerId );
+				Animate.timerId = null;
+
+				// 动画结束后调用该调用的俩函数
+				!!Animate.callback && Animate.callback()
+				!!Animate.nextFun && Animate.nextFun();
+
+				if( !!Animate.elem.query && Animate.elem.query.length === 0) {
+					Animate.elem.query = undefined;
+					animate.first = true;
+				};
+			},
+
+			// 循环监测
+			monitor : function() {
+				var timers = Animate.timers;
+
+				// 这里的val就是Animate里面的tick函数
+				timers.forEach(function( val, i ) {
+					// 如果返回false或者返回0的时候就代表结束了
+					!val() && timers.splice( i--, 1 )
+				})
+
+				!timers.length && Animate.fx.stop();
+
+				Animate.fxNow = undefined;
+			}
+		};
+
+
+		// 接下来就是入栈操作
+		// ============================================================================
+
+		animate.first = true;				// 初始化开关
+		animate.fireing = false;			// 动画锁
+		animate.fire = function( elem ) {	// 启动
+			// 动画锁的作用是当前动画正在执行的时候，不可能让你下一个动画执行
+			if( !animate.fireing ) {
+				// 动画函数出栈，并且拿到它
+				var firstFun = !!elem.query && elem.query.shift();
+
+				if( !!firstFun ) {
+					// 加上动画锁吧，当前的动画要执行了，不允许后来者的打扰
+					animate.fireing = true;
+
+					// 动画开始的时候把这个后来者当初参数传入进去，总得给后来者一条路吧
+					firstFun( function() {
+						animate.fireing = false;	// 解开动画锁，不然路就被堵死了
+						animate.fire( elem );
+					})
+				}
+			}
+		}
+
+		function animate( elem, option, time, callback ) {
+			// 先入栈
+			if( !elem.query ) {
+				elem.query = [];
+				elem.query.push(function( nextFun ) {
+					// 在这里这个函数根本不会调用，哈哈，差点懵逼
+					Animate( elem, option, time, callback, nextFun );
+				})
+			}else{
+				elem.query.push(function( nextFun ) {
+					Animate( elem, option, time, callback, nextFun );
+				})
+			}
+
+			if( !!animate.first && !!elem.query.length ) {
+				animate.fire( elem );		// go,go,go,fire ~~
+				animate.first = false;
+			};
+
+		}
+
+		function go() {
+
+		}
+		// 测试代码
+		// ===============================================================================
+		function $( select ) {
+			if( !select ) return;
+			let el = document.querySelectorAll( select );
+			el.length == 0 ? el = null :
+			el.length == 1 ? el = el[0] :
+								 el = el;
+			return el;
+		};
+
+		var isok = true
+		$( '#dd' ).addEventListener( 'click' , function() {
+			if( isok ) {
+				isok = false
+				animate( this, {
+					transform : [0, 130, 130],
+					borderRadius : 50
+				}, 1000, function() {
+					console.log( '出来' )
+				});
+			}else{
+				isok = true
+				animate( this, {
+					transform : [0, 130, -1300],
+					borderRadius : 5
+				}, 1000, function() {
+					console.log( '回去' )
+				});
+			}
+		})
+
+
+		var issok = true
+		$( '#aa' ).addEventListener( 'click' , function() {
+			if( issok ) {
+				issok = false
+				animate( this, {
+					transform : [200, 330, 130],
+					borderRadius : 50
+				}, 1000, function() {
+					console.log( '出来' )
+				});
+			}else{
+				issok = true
+				animate( this, {
+					transform : [200, 330, -1300],
+					borderRadius : 5
+				}, 1000, function() {
+					console.log( '回去' )
+				});
+			}
+		})
+	</script>
+</body>
+</html>

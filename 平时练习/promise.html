@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>promist</title>
+</head>
+<body>
+	<button id="click">点击</button>
+	<div id="log"></div>
+	<script>
+		'use strict';
+		var promiseCount = 0;
+		document.getElementById('click').addEventListener( 'click', function( e ) {
+			testPromise()
+		} )
+
+		function testPromise() {
+		    var thisPromiseCount = ++promiseCount;
+
+		    var log = document.getElementById( 'log' );
+		    log.insertAdjacentHTML( 'beforeend', thisPromiseCount +') 开始 (<small>同步编码开始</small>)<br/>' );
+
+		    // 新建一个Promise对象
+		    var p1 = new Promise( function( resolve, reject ) {
+		            log.insertAdjacentHTML( 'beforeend', thisPromiseCount +') Promise开始(<small>异步编码开始</small>)<br/>' );
+		            // 模拟异步代码
+		            window.setTimeout( function() {
+		                // 填充（fulfilled））promise
+		                resolve( thisPromiseCount );
+		            } , Math.random() * 2000 + 1000 );
+		        }
+		    );
+
+		    // 通过调用then方法，我们定义了当promise被成功解析（resolved）/填充（fulfilled）时要执行的代码,
+		    // 而catch()方法则定义了当promise被拒绝（rejected）时要执行的代码.
+		    // 记录被填充的值
+		    p1.then( function( val ) {
+		    	console.log('回调函数')
+		        log.insertAdjacentHTML('beforeend', val +') Promise fulfilled (<small>异步编码结束</small>)<br/>');
+		    // 记录被拒绝的理由（异常信息）
+		    }).catch( function( reason ) {
+		    	console.log( reason )
+		        console.log('Handle rejected promise ('+ reason +') here.');
+		    });
+
+			log.insertAdjacentHTML('beforeend', thisPromiseCount + ') Promise made (<small>同步编码结束</small>)<br/>');
+		}
+
+	</script>
+</body>
+</html>

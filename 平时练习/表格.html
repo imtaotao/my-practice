@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+	<style>
+		*{
+			padding: 0;
+			margin:0;
+			box-sizing: border-box;
+		}
+		ul,li{
+			list-style: none;
+			text-align: left;
+			color: #333;
+		}
+		.box{
+			width: 700px;
+			margin:20px auto;
+			border-radius: 2px;
+			box-shadow: 0px 1px 15px rgba(108, 119, 134, .5)
+		}
+		.head-title{
+			background: #a5a5a5;
+			color: #f3f3f3;
+			text-align: center;
+			height: 30px;
+			line-height: 30px;
+			font-weight: bold;
+		}
+		ul{
+			overflow: hidden;
+		}
+		li{
+			float: left;
+			width: 33.3%;
+			overflow: hidden;
+			text-overflow:ellipsis;
+			padding: 5px;
+			cursor: text;
+		}
+		li:hover{
+			background: #edefda;
+
+		}
+		.content-title{
+			font-weight: bold;
+		}
+		.first-li{
+			padding-left: 15px;
+		}
+		li:not(.first-li){
+			text-align: center;
+		}
+		.ul-half li{
+			width: 33.3%;
+		}
+		.ul-half li:last-child{
+			float: right;
+		}
+	</style>
+</head>
+<body>
+	<div class="box">
+		<!-- one -->
+		<p class="head-title">关注名单规则</p>
+		<div>
+			<ul class="content-title">
+				<li class="first-li">匹配字段</li>
+				<li>风险类型</li>
+				<li>风险等级</li>
+			</ul>
+			<ul>
+				<li class="first-li">1212345644466346464</li>
+				<li>信贷逾期名单</li>
+				<li>高</li>
+				<li class="first-li">1212345644466346464</li>
+				<li>机构代办</li>
+				<li>中</li>
+				<li class="first-li">1212345644466346464</li>
+				<li>信用异常</li>
+				<li>中</li>
+				<li class="first-li">12233333333</li>
+				<li>异常借款</li>
+				<li>中</li>
+			</ul>
+		</div>
+		<!-- two -->
+		<p class="head-title">信贷逾期统计规则</p>
+		<div>
+			<ul class="content-title ul-half">
+				<li class="first-li">属性名</li>
+				<li>信贷逾期次数</li>
+			</ul>
+			<ul class="ul-half">
+				<li class="first-li">12233333333</li>
+				<li>1.0</li>
+			</ul>
+			<ul class="content-title">
+				<li class="first-li">逾期金额</li>
+				<li>逾期笔数</li>
+				<li>逾期天数</li>
+			</ul>
+			<ul>
+				<li class="first-li">[1000,5000]</li>
+				<li>-</li>
+				<li>360+</li>
+			</ul>
+		</div>
+	</div>
+</body>
+</html>

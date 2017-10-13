@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>文件上传demo</title>
+	<style>
+		.updata{
+			width: 100px;
+			cursor: pointer;
+			background: #2f3411;
+			color: #fff;
+			text-align: center;
+			border-radius: 5px;
+		}
+	</style>
+</head>
+<body>
+	<input type="file" id="file">
+	<p class="updata" id="updata">上传</p>
+</body>
+<script>
+	function fileUploda ( file ) {
+		this.file = file;
+		this.addFile()
+	} 
+
+	fileUploda.query = function( select ) {
+		var el = document.querySelectorAll( select );
+				el.length == 0 ? el = null :
+				el.length == 1 ? el = el[0] :
+								 el = el;
+			return el;
+	}
+	//简化事件方法
+	fileUploda.bind = function ( el , event , fun ) {
+		var me = this;
+		el === document ? el.addEventListener( event , fun ) : 
+						  me.query( el ).addEventListener( event , fun );
+	},
+
+	fileUploda.prototype = {
+		constructor : fileUploda,
+		formData : new FormData(),
+		fileLength : 0,
+		addFile : function () {
+			var me = this,
+				file = me.file;
+
+			//初始化为0
+			me.nameContainer = [];
+
+			//添加到formData对象中去
+			for ( var i = 0 ; i < file.length ; i++ ) {
+				me.formData.append( file[i].name , file[i].value );
+
+				//把名字添加到名字容器里面
+				me.nameContainer.push( file[i].name );
+			}
+			//上传文件的数量
+			me.fileLength = file.length;
+			return this;
+		},
+		ajax : function ( parm , callback , err ) {
+			var me = this,
+				url = parm.url,
+				xhr = new XMLHttpRequest();
+
+			if( !parm.jsonp ) {
+				xhr.onreadystatechange = function(){
+					if( xhr.readyState === 4 ) {
+					    if( xhr.status === 200 ) {
+					       	callback.call( this , xhr.response );
+					   	}else{
+					        console.warn( '响应完成但是有错误' );
+					        !!err && err.call( this , xhr );
+					    }
+				    }
+				};
+
+				//发送请求，因为是上传，所以post
+				xhr.open( 'POST' , url , true );
+				xhr.send( me.formData );
+
+				//请求过后删除文件
+				for( var i = 0 ; i < me.nameContainer.length ; i++ ){
+					me.formData.delete( me.nameContainer[i] );
+				}
+			}; 
+
+			//jsonp
+			if( !!parm.jsonp ) {
+				//创建script标签
+				var script = document.createElement( 'script' );
+				//请求地址
+				script.src = url + "?callback=callback";
+				//添加
+				document.head.appendChild( script );
+				document.head.removeChild( script );
+				window.callback = callback;
+
+			}
+		}
+		
+	}
+
+
+	//表单模拟ajax请求
+	function formAjax ( parm ) {
+		this.parm = parm;
+		this.input = fileUploda.query( parm.input );
+		this.subtn = fileUploda.query( parm.subtn );
+		this.callback = parm.callback;
+		this.url = parm.url;
+
+		//添加事件
+		this.input.onchange = this.clone();
+		this.subtn.addEventListener( 'click' , this.upClick() );
+	}
+
+	formAjax.prototype = {
+		constructor : formAjax,
+		i : 0,
+		first : true,
+		clone : function() {
+			var me = this;
+
+			return function( e ) {
+				if( !!me.first ) {
+					me.addForm();
+					me.first = false;
+				}
+
+				me.i++;
+
+				//得先addForm才能获取到myform
+				var myform = document.getElementById( 'myform' ),
+					node = 'node' + me.i;
+
+				//克隆当前元素
+				node = document.importNode( this , true );
+				node.id = me.i;
+
+				//nama不能一样，不然只能上传一张图片
+				node.name = 'userfile' + (me.i - 1)
+				myform.appendChild( node );
+			}
+
+		},
+		upClick : function() {
+			var me = this;
+			return function( e ) {
+				//myform要在闭包函数里面，放在外面函数立即执行，此时dom还没有加载完毕
+				var myform = document.getElementById( 'myform' );
+				!!myform && myform.submit();
+
+				//得到响应数据
+				me.response()
+			}
+		},
+		response : function() {
+			var me = this,
+				t = setInterval(function(){
+					try {
+					   //得到iframe的html
+						var html,
+							iframe = window.frames["upload"].document;
+						body = iframe.querySelector( 'body' );
+						!!body && ( html = body.innerHTML );
+
+						//判断html是否加载完成
+						if( !!html && html != '' ){
+							var pbody = document.getElementsByTagName( 'body' )[0],
+								container = document.getElementById( 'container' ),
+								search = iframe.location.search;
+
+							var res = me.getParam( 'data' , search );
+
+							console.log(iframe.location)
+							//回调函数
+							me.callback.call( this , res )
+
+							//清除定时器与容器，恢复开关
+							pbody.removeChild( container );
+							me.first = true;
+							me.i = 0;
+							clearInterval( t );
+							t = null;
+						} 
+					}catch( err ) {
+						clearInterval( t );
+						t = null;
+					    throw new Error( err + '（很大一部分原因是跨域错误。。。）' )
+					};
+				} , 5 );
+
+		},
+		addForm : function() {
+			var me = this;
+			var body = document.getElementsByTagName( 'body' )[0];
+
+			//生成容器
+			var container = document.createElement( 'div' );
+			container.id = 'container';
+			container.style.display = 'none';
+
+			//生成ifram
+			var iframe = document.createElement( 'iframe' );
+			iframe.name = 'upload';
+			iframe.src = 'about:blank';
+			iframe.style.display = 'block';
+			iframe.id = 'iframe';
+
+			//生成form
+			var form = document.createElement( 'form' );
+			form.action = this.url;
+			form.method = 'POST';
+			form.enctype = 'multipart/form-data';
+			form.target = 'upload';
+			form.id = 'myform';
+
+			//生成input,给后台传递url
+			var input = document.createElement( 'input' ),
+				href = window.location.href,
+				host = window.location.hostname;
+
+			console.log(href)
+
+			//不能使用本地服务器打开，否则传递url地址不正确，导致后台返回不到本页面而跨域失败
+			if( host === '' ) {
+				throw new Error( '请在服务器中打开此页面' )
+			}
+			if( host === '127.0.0.1' ) {
+				throw new Error( '不能使用127.0.0.1打开本网页,可能会导致跨域失败' )
+			};
+			if( host === 'localhost' ) {
+				throw new Error( '不能使用localhost打开本网页,可能会导致跨域失败' )
+			};
+			href.indexOf( '?' ) == -1 ? href = href + '?afdaer=a' : href = href;
+			input.type = 'text';
+			input.name = 'tmpurl';
+			input.value = href;
+			input.style.display = 'none';
+
+			//依次添加
+			form.appendChild( input )
+			container.appendChild( form );
+			container.appendChild( iframe );
+			body.appendChild( container );
+		},
+		getParam : function( name , search ) {
+			var reg = new RegExp( "(^|&)" + name + "=([^&]*)(&|$)" , "i" ),
+				r = search.substr( 1 ).match( reg );
+
+			if ( r != null ){
+				return unescape( r[2] )
+			};
+			return null;
+		}
+
+	};
+	//继承自ajax
+	Object.setPrototypeOf ( formAjax.prototype , fileUploda.prototype );
+
+
+
+	var updata = {
+		name : 'userfile',
+		i : 0,
+		fileInput : document.getElementById( 'file' ),
+		fileUploda : fileUploda,
+		fileContainer : [],
+		init : function() {
+			//this.ajaxInput();
+			this.formInput();
+			
+		},
+		//通过ajax发送请求
+		ajaxInput : function() {
+			this.fileInput.onchange = this.change;
+			//点击事件
+			fileUploda.bind( '#updata' , 'click' , this.clickUpdata )
+		},
+		//通过动态生成表单模拟ajax发送请求
+		formInput : function() {
+			new formAjax({
+				url : 'http://192.168.2.251/fileupdata/upload11.php',
+				input : '#file',
+				subtn : '#updata',
+				callback : function( res ) {
+					console.log( res )
+				}
+			});
+		},
+		change : function() {
+			var me = updata,
+				file = me.fileInput.files[0];
+
+			//改变名字
+			me.name = 'userfile' + me.i++;
+			//把文件添加到文件容器里面
+			me.fileContainer.push( { name : me.name , value : file } );
+		},
+		clickUpdata : function(){
+			var me = updata;
+			var filesend = new fileUploda( me.fileContainer );
+			filesend.ajax({
+				url : 'http://192.168.2.251/fileupdata/upload.php'
+			} , function( res ){
+				console.log( res )
+			})
+		},
+	}
+	updata.init()
+</script>
+</html>

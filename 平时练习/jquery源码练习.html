@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+</head>
+<body>
+<div id="dd">dfafas</div>
+<input type="text" value="你好">
+	<!-- <script src="jquery-2.0.3.js"></script> -->
+	<script>
+
+		构造函数
+		function $ ( one, two ) {
+			return new $.prototype.init(  arguments )
+		} 
+		//原型对象
+		$.prototype = {
+			init : function ( arguments ) {
+				if( !arguments ) {
+					return this
+				}else {
+					if ( arguments.length > 0 ) {
+						console.log ( '传了参数' )
+					}
+					if ( arguments.length > 1 ) {
+						console.log ( '并且传了不止一个参数' )
+					}
+				}
+			},
+			alert : function ( context ) {
+				alert ( context )
+			},
+			doument : function ( context ) {
+				document.write ( context )
+			}
+		}
+		//添加方法
+		$.myself = function ( ) {
+			for ( var i = 0; i < 5; i++ ) {
+				console.log ( i )
+			}
+		}
+		$.prototype.init.prototype = $.prototype;
+
+		$(1,3).alert(111)
+		$.myself()
+	</script>
+</body>
+</html>

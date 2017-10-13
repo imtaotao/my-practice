@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8"/>
+	<title>Document</title>
+</head>
+<body>
+	<script>
+		Date.prototype.format = function( t , position , fillzero ) {
+			/*
+			*参数*（ true都是补0操作 ）
+				* 所有的默认都是未补0的时间
+				* 不传参数，默认显示before，未补0
+				* 传参*
+					* 参数一 ：连接符 （ 必须传 ）, 如果传true，就是给默认值补0操作
+					* 参数二 ：位置 （ 'all' , 'before' , 'after' , true），不传默认显示before，true表式补0
+					* 参数三 ：补0操作 （ true 或 false），默认为false
+			*/
+			var time = this;
+			var timeObj = {
+				year : time.getFullYear(),
+				month : time.getMonth() + 1,
+				date : time.getDate(),
+				hours : time.getHours(),
+				minutes : time.getMinutes(),
+				seconds : time.getSeconds(),
+				dateTime : null,
+				init : function() {
+					this.timeFormat();
+					this.returnTime();
+				},
+				fizer : function( value ) {
+					//转字符串
+					value += '';
+					//判断是否有两位数字
+					value.length > 1 ? value = value : value = '0' + value;
+
+					return value
+				},
+				timeFormat : function() {
+					this.defaultTime = this.year + '-' + this.month + '-' + this.date + ' ' + this.hours + ':' + 				this.minutes + ':' + this.seconds;
+					this.defaultTimeBefore = this.year + '-' + this.month + '-' + this.date;
+					this.defaultTimeBeforeZero = this.year + '-' + this.fizer( this.month ) + '-' + 
+												 this.fizer( this.date );
+
+					if( !!t ) {
+						this.all = this.year + t + this.month + t + this.date + ' ' + this.hours + ':' + 
+								   this.minutes + ':' + this.seconds;
+						this.allzero = this.year + t + this.fizer( this.month ) + t + this.fizer( this.date ) + ' ' + this.fizer( this.hours ) + ':' + this.fizer( this.minutes ) + ':' + this.fizer( this.seconds );
+
+						//前半部分
+						this.before = this.year + t + this.month + t + this.date;
+						this.beforezero =  this.year + t + this.fizer( this.month ) + t + this.fizer( this.date );
+
+						//后半部分
+						this.after = this.hours + t + this.minutes + t + this.seconds;
+						this.afterzero = this.fizer( this.hours ) + t + this.fizer( this.minutes ) + t + 
+										 this.fizer( this.seconds );
+					}
+				},
+				returnTime : function() {
+					if( !t ) {
+						//默认情况
+						this.dateTime = this.defaultTimeBefore;
+					}else if( t === true ) {
+						//默认补0
+						this.dateTime = this.defaultTimeBeforeZero;
+					}else {
+						//有参数的情况
+							//没有位置（自然也就没有补0）
+						if( !position ) {
+
+							this.dateTime = this.before;
+						}else {
+							//有位置（根据补0操作来判断）
+							if( position === 'all') {
+
+								!fillzero ? this.dateTime = this.all : this.dateTime = this.allzero; 
+							}else if( position === 'before' ) {
+
+								!fillzero ? this.dateTime = this.before : this.dateTime = this.beforezero; 
+							}else if( position === 'after' ) {
+
+								!fillzero ? this.dateTime = this.after : this.dateTime = this.afterzero;
+							}else {
+
+								this.dateTime = this.beforezero;
+							}
+						}
+					};
+				}
+
+			};
+			timeObj.init();
+			return timeObj.dateTime;
+		}
+
+		setInterval( function() {
+			var time = new Date().format( ':' , 'after' , true );
+			console.log( time )
+		} , 1000 )
+	</script>
+</body>
+</html>

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>自定义循环</title>
+</head>
+<body>
+	<script>
+		function each( obj ) {
+ 			this.obj = obj
+		}
+		each.prototype = {
+			constructor : each,
+			then : function( callback ) {
+				var name,
+					i = 0,
+					me = this,
+					promises = [],
+					obj = me.obj;
+
+					if( me.isobj( obj )) {
+						for ( name in obj ) {
+							var value = callback.call( obj[name] , i , obj[name] );
+							if( value === false ) {
+								break
+							}
+						}
+					}else{
+						for( ; i < obj.length ; i++ ) {
+							var value = callback.call( obj[i] , i , obj[i] , value );
+							if( value === false ) {
+								break
+							}
+
+							if( me.isArr( value ) ) {
+								for(var j = 0 ; j < value.length ; j++  ) {
+									promises.push( value[j] )
+								}
+							}else{
+								promises.push( value )
+							}
+						}
+					}
+					return new me.constructor( promises )
+			},
+			nestCallback : function( i , v ) {
+				console.log(v)
+			},
+			isArr : function( arr ) {
+				return Object.prototype.toString.call( arr ) === "[object Array]";
+			},
+			isobj : function( obj ) {
+				return Object.prototype.toString.call( obj ) === "[object Object]";
+			}
+		};
+
+		var data = [ 'a' ,'b' ,'c', 'd' ],
+			data2 = [ 11 , 22 , 33 , 44 ]
+
+		var e = new each( data ).then( function( i , v , parm ) {
+			return  data2;
+		}).then( function( i , v , parm ) {
+			console.log( parm )
+		})
+
+	</script>
+</body>
+</html>

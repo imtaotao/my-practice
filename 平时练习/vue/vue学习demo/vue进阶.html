@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>vue进阶</title>
+	<script src="../vue-frame/vue.js"></script>
+</head>
+<body>
+	<div id="div1">
+		<child :level="level" class="fff">Hello world!</child>
+	</div>
+	
+	<!-- 自定义指令 -->
+	<div id="defined">
+		<input type="text" v-focus>
+	</div>
+
+<!-- <script type="text/x-template" id="template">
+	<div>
+		<h1 v-if="level === 1">
+			<slot></slot>
+		</h1>
+		<h2 v-if="level === 2">
+			<slot></slot>
+		</h2>
+		<h3 v-if="level === 3">
+			<slot></slot>
+		</h3>
+		<h4 v-if="level === 4">
+			<slot></slot>
+		</h4>
+		<h5 v-if="level === 5">
+			<slot></slot>
+		</h5>
+		<h6 v-if="level === 6">
+			<slot></slot>
+		</h6>
+	</div>
+</script> -->
+
+<script>
+    Vue.component( 'child', {
+		render :  function ( createElement ) {
+			var node = createElement(
+					'div',
+					Array.apply(null, { length: 2 } ).map(() =>{
+						return createElement( `h${this.level}`,  this.$slots.default )
+					})
+				);
+			return node
+		},
+		props : {
+			level: {
+				type: Number,
+				required: true
+			}
+		}
+	})
+
+    var vm = new Vue({
+	    el : "#div1",
+	    data : {
+	    	level : 2
+	    }
+	})
+
+	// 自定义指令
+	Vue.directive( 'focus', {
+		inserted : function( el ) {
+			el.focus();
+		},
+		bind : function( el, binding, vnode, oldVnode ) {
+			console.log( el, binding, vnode, oldVnode  )
+		}
+	})
+
+	var vm2 = new Vue({
+		el : '#defined'
+	})
+</script>
+</body>
+</html>

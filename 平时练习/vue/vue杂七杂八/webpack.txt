@@ -1,0 +1,35 @@
+一、概念
+  1.入口
+     webpack 将创建所有应用程序的依赖关系图表(dependency graph）
+     图表的起点被称之为入口起点(entry point）
+     入口起点认为是根上下文(contextual root)或 app 第一个启动文件。
+    
+      a).通过 entry 属性来配置定义入口
+  
+  2.出口
+     webpack 的 output 属性描述了如何处理归拢在一起的代码(bundled code)。
+    
+      a).output:{
+	  path : 'xxx',
+    	  filename : 'xxx.js'
+       }
+
+  3.加载器(Loaders)
+     module: {
+    	rules: [
+      		{test: /\.(js|jsx)$/, use: 'babel-loader'}
+    	]
+     }
+
+    a).碰到「在 require()/import 语句中被解析为 '.js' 或 '.jsx' 的路径」时，在你把它们添加并打包之前，
+       要先使用 babel-loader 去转换”。
+  
+    b). webpack 配置中定义 loader 时，要定义在 module.rules 中，而不是 rules。
+
+  4.插件(Plugins)
+      plugins: [
+   	 new webpack.optimize.UglifyJsPlugin(),
+    	new HtmlWebpackPlugin({template: './src/index.html'})
+      ]
+
+ 

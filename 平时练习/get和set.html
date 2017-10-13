@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+</head>
+<body>
+	<script>
+		var obj = {
+			taotao : '陈涛',
+			_fangfang : '芳芳'
+		}
+		Object.defineProperty( obj, 'fangfang', {
+			get : function () {
+				return this._fangfang
+			},
+			set : function( newVal ) {
+				this._fangfang = newVal + '——————“！！！！！”'
+			}
+		})
+		// 测试
+
+		// 实时监测obj.fangfang这个属性，一旦发生变化，就为其添加后缀
+		console.log( obj.fangfang )
+		obj.fangfang = '谁是芳芳'
+		console.log( obj.fangfang )
+	</script>
+</body>
+</html>

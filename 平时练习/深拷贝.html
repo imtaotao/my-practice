@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>深拷贝</title>
+</head>
+<body>
+	<script>
+		// var a = 0 ;
+		// var b = a ; 
+		// b = 1;
+		// console.log( a )
+
+		//数组的深拷贝
+		// var a = [1 , 1 , 1];
+		// var b = a.slice( 0 );
+		// b[1] = 3;
+		// console.log( a )
+
+		//对象的深拷贝
+		var a = { name : '涛涛' , surname : '芳芳'};
+		var b = JSON.parse( JSON.stringify( a ) );
+		b.name = '小涛';
+		console.log( a )
+	</script>
+</body>
+</html>

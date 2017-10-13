@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+	<style>
+		[data-select=true]{
+			width: 150px;
+			height: 30px;
+			background: rgba(0,0,0,.4);
+			border-radius: 5px;
+			cursor: pointer;
+			position: relative;
+			font-size: 1rem;
+			color: #fff;
+		}
+		[data-select=true]>span{
+			display: inline-block;
+			width: 100%;
+			text-align: center;
+		}
+		[data-select=true] ul{
+			display: none;
+			padding: 0;
+			margin:0;
+			width: 100%;
+			list-style: none;
+			position: absolute;
+			background: rgba(0,0,0,.4);
+			border-radius:0 0 5px 5px;
+			top:15px;
+			box-shadow: 0 1px 4px rgba(0,0,0,.8)
+		}
+		[data-select=true] ul li{
+			text-align: center;
+			padding:5px 0;
+			border-top: 1px solid rgba( 213 , 212 , 231 , .4 )
+		}
+		[data-select=true] ul li.hover{
+			background: rgba(78, 95, 108,.8);
+		}
+		/*[data-select=true] ul li:hover{
+			background: rgba(78, 95, 108,.8);
+		}*/
+	</style>
+</head>
+<body>
+	<div data-select="true">
+		<span></span>
+		<ul>
+			<li>牛奶</li>
+			<li>咖啡</li>
+			<li>蜜糖</li>
+		</ul>
+	</div>
+<script src="jquery-2.0.3.js"></script>
+<script>
+	var select = {
+		box : $( '[data-select = true]' ),
+		ul :　$( '[data-select = true]>ul' ),
+		liSet : $( '[data-select = true]>ul li' ),
+		show : $( '[data-select = true]>span'),
+		init : function() {
+			this.conrectStyle();
+			this.aimate();
+		},
+		conrectStyle : function() {
+			// 修正下拉框的位置
+			var top = parseInt( this.box.css( 'height' ) ),
+				ul = this.ul;
+
+			ul.css( 'top' , top );
+
+			// 让ul的第一个li有hover样式
+
+			// 标题显示文字要居中
+			this.show.css( 'line-height' , top + 'px' )
+
+			// 默认显示第一个option
+			// 遍历所有的ul，看其下的第一个option的在值是否存在
+			for( var i = 0 ; i < ul.length ; i++ ) {
+				// 得到第一个li
+				var firstLi = $( ul[i] ).find( 'li:first-child' );
+				// 赋值
+				$( ul[i] ).siblings( 'span' ).html( firstLi.html() );
+				// 给hover样式
+				firstLi.addClass( 'hover' )
+			}
+		},
+		aimate : function() {
+			var me = this,
+				box = me.box,
+				liSet = me.liSet,
+				boxRadius = true;
+
+			//下拉框动( 可以通过事件捕获来让li点击时可以收起 )
+			box.on( 'click' , function( e ) {
+				var div = $( this );
+				// 调用动画以及改变样式
+				div.find( 'ul' ).stop().slideToggle( 100 , function() {
+					!!boxRadius ? div.css( 'border-radius' , '5px 5px 0 0' ) && ( boxRadius = false ) :
+								  div.css( 'border-radius' , '5px' ) && ( boxRadius = true );
+				})				
+			})
+
+			//option( li )添加点击事件，让span显示当前的值
+			liSet.on( 'click' , function( e ) {
+				var value = $( this ).html()
+
+				// 切换样式
+				$( this ).siblings( '.hover' ).removeClass( 'hover' )
+				$( this ).addClass( 'hover' )
+				// 赋值
+				$( this ).parent().siblings( 'span' ).html( value )
+			})
+		}
+	}
+	select.init()
+</script>
+</body>
+</html>

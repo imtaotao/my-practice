@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+	<style>
+		body{
+			transform-style : preserve-3d;
+			perspective : 1000px;
+		}
+		div{
+			width: 250px;
+			height: 350px;
+			background: rgba(0,0,0,.5);
+			position: absolute;
+			border-radius: 10px;
+		}
+		#container{
+			background: rgba(1,1,1,0)
+		}
+		#aa{
+			transform: translate3d(0,30px,-200px);
+		}
+		#bb{
+			transform: translate3d(220px,0,0);
+		}
+		#cc{
+			transform: translate3d(300px,30px,-200px);
+		}
+	</style>
+</head>
+<body>
+	<div id="container">
+		<div id="aa"></div>
+		<div id="bb"></div>
+		<div id="cc"></div>
+	</div>
+	<script>
+		HTMLElement.prototype.move = function( prop, time, fun ) {
+		let el = this;
+
+		// 添加css过渡属性
+        el.style.webkitTransitionDuration = time + 'ms';
+        !!prop.delay && ( el.style.webkitTransitionDelay = prop.delay + 'ms' );
+
+        // 异步操作中改变属性状态
+        setTimeout(function() {
+        	for( var k in prop ) {
+        		el.style[k] = prop[k];
+        	}
+        });
+
+        // 结束后css过渡属性恢复初始状态，并调用回调
+     	el.addEventListener( 'webkitTransitionEnd', function() {
+         	el.style.webkitTransitionDelay = '0s';
+         	el.style.webkitTransitionDuration = '0s';
+
+         	// 多个属性过渡结束，但只调用一次回调
+         	if( !!fun && !fun.open ) {
+         		fun.call( el );
+         		fun.open = true;
+         	}
+        });
+
+        return el;
+	};
+	</script>
+
+	<!-- 测试 -->
+	
+	<script>
+		var init = function() {
+			container.innerHTML = '<div id="aa"></div>'+
+								'<div id="bb"></div>'+
+								'<div id="cc"></div>'
+		};
+
+		function animate() {
+			aa.move({
+				delay : 1000,
+				transform : 'translate3d(300px,30px,-200px)'
+			}, 1000 )
+
+			bb.move({
+				delay : 1000,
+				transform :  'translate3d(0,30px,-200px)'
+			}, 1000 )
+
+			cc.move({
+				delay : 1000,
+				transform :  'translate3d(220px,0,0)'
+			}, 1000 ,function() {
+				init()
+				animate();
+			})
+		}
+		animate()
+	</script>
+</body>
+</html>

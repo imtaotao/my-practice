@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>16进制与rgb的互相转化</title>
+	<style>
+		#dd{
+			width: 150px;
+			height: 150px;
+			background: #72c8e1;
+			border-radius: 5px;
+			cursor: pointer;
+			box-shadow: 3px 3px 9px #acb9c9;
+	</style>
+</head>
+<body>
+	<div id="dd"></div>
+	<script>
+		  
+		var colorRgb = function( val, opacity = 1) {
+			var reg = /^#([0-9a-fA-f]{3}|[0-9a-fA-f]{6})$/;
+
+			// 全部转小写
+		    var color = val.toLowerCase();
+
+		    // 存在color且格式是16进制的
+		    if( color && reg.test( color ) ) {
+		    	// 先转化为六位的颜色值
+		        if(color.length === 4){  
+		            var colorNew = "#";  
+		            for( var i = 1; i < 4; i++ ) {  
+		                colorNew += color.slice( i, i+1 ).concat( color.slice( i, i+1 ) );
+		            }
+		            color = colorNew;  
+		        };
+
+		        //处理六位的颜色值（'0x'代表的就是十六进制）
+		        var colorChange = [];  
+		        for( var i = 1; i < 7; i += 2 ) {
+		            colorChange.push( parseInt( "0x" + color.slice( i, i+2 ) ) );    
+		        };
+
+		        colorChange.push( opacity )
+		        return colorChange
+
+		    }
+
+		    if( color.includes( 'rgb' ) ) {
+		    	var prefix = color.includes( 'rgba' ) ? 'rgba(' : 'rgb(';
+		    	color = color.replace( prefix, '' ).replace( ')', '' ).split( ',' );
+
+		    	for( var i = 0; i < color.length; i++ ) {
+		    		color[i] = Number( color[i] );
+		    	};
+		    	color.length == 3 && ( color[3] = opacity );
+		    	return color;
+		    }  
+		};
+		console.log( colorRgb( 'rgba(23,42,42,.6)'))
+	</script>
+</body>
+</html>

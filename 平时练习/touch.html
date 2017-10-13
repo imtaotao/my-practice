@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+	<title>Document</title>
+	<style>
+	    body{
+	    	overflow: hidden;
+	    }
+		#dd{
+			height: 400px;
+			width: 100%;
+			background: #666;
+			position: relative;
+			top: 618px;
+			overflow-y:hidden;
+			/*top:225*/
+		}
+		#aa{
+			height: 1600px;
+			width: 90%;
+			margin:auto;
+			background: #ffd328;
+			position: absolute;
+			top: 0;
+		}
+		.hidX{
+			overflow-x: hidden;
+		}
+		.transiton{
+			transition:top 2s cubic-bezier(.26, .84, .45, .92) 0s;
+		}
+		#ee{
+			margin-top: 200px;
+		}
+		#rr{
+			position: absolute;
+			top: 800px;
+		}
+		#tt{
+			position: absolute;
+			top: 1200px;
+		}
+	</style>
+</head>
+<body>
+	<div id="dd">
+		<div id="aa" class="transiton">
+			<button>一</button><br>
+			<button id="ee">二</button>
+			<button id="rr">三</button>
+			<button id="tt">四</button>
+		</div>
+	</div>
+	<script src="jquery-1.11.3.js"></script>
+	<script>
+		//直接用jq给document添加事件老是报错
+		var onbind = function(el,ename,fun){
+			if(el === document){
+				el.addEventListener(ename,fun)
+			}else{
+				$(el)[0].addEventListener(ename,fun);
+			}
+		};
+
+		//设备的高
+		var phoneHeight = window.screen.height
+		$('body').css('height',phoneHeight)
+
+		var oldTime,newTime,differ,isScrolling,direction,nprey,prey,ntop,btop;
+		var isscroll = false;//开关初始化false，不滑动不允许下来
+
+		var animateEnt =  function(){
+			//静止父级元素滑动（清除touch事件）
+			$('#dd')[0].removeEventListener('touchstart',startfun)
+			$('#dd')[0].removeEventListener('touchmove',movefun)
+			$('#dd')[0].removeEventListener('touchend',endfun)
+			//给外部的div添加overflow-x
+			$('#dd').addClass('hidX')
+			//如果结束时的在屏幕y位置与父级元素的位置相同就启动父级的滑动
+			var len,slen,elen,offTop,chilnprey,chilprey,chilntop,chilbtop,childirection,dif,chilstartime,chilmovetime,chilendtime,citop,initlen = 0;
+			var chilstart = function(e){
+				e.preventDefault();
+				e.stopPropagation();
+				var touch = e.changedTouches[0];
+				slen = {x:touch.pageX,y:touch.pageY};
+				chilprey = slen.y
+				chilntop = parseInt($('#aa').css('top'));
+				$(this).css('transition-property','none')
+				//再次点击的时候取消滑动（以防止惯性滑动动画没有走完）
+				$(this).css('top',chilntop)
+				//得到开始点击时的时间值
+				chilstartime = new Date().getTime()
+			}
+
+			var chilmove = function(e){
+				e.preventDefault();
+				e.stopPropagation();
+				//只有移动过后才打开恢复默认的开关
+				isscroll = true;
+				//上一次的touchy值，默认取开始的时候
+				chilnprey = chilprey
+				//现在的top
+				var touch = e.changedTouches[0];
+				childirection  = {x:touch.pageX - slen.x,y:touch.pageY - slen.y};
+				//得到这一个的touchy值
+				var mepre =  Math.abs(touch.pageY);
+				//把这次得到的touchy值赋值给prey
+				chilprey = Math.abs(touch.pageY);
+				//开始移动
+				if(Math.abs(direction.x) < 100){//横移小于100时
+					dif = mepre - chilnprey;	//得到这次与上次滑动之间的差值
+						citop = chilntop + dif;
+						chilntop = chilntop + dif;
+						if(citop > 0){citop = 0}
+						if(citop < -1200){citop = -1200}
+						$('#aa').css('top',citop);
+				}
+				//得到最后一次移动的时间，用来计算与手指抬起时的时间差
+				chilmovetime = new Date().getTime();
+			}
+
+			var chilend = function(e){
+				e.preventDefault();
+				e.stopPropagation();
+				var touch = e.changedTouches[0];
+				elen = {x:touch.pageX,y:touch.pageY};
+				//移动的距离,initlen是上一次距离顶部的距离
+				len = elen.y - slen.y;
+				//距离顶部的距离
+				offTop = initlen + len;
+				initlen = offTop;
+				//得到移动结束时用的时间值
+				chilendtime = new Date().getTime();
+				var timedif = chilendtime - chilstartime;
+				//计算最后抬起手指用的时间
+				var uptime = chilendtime - chilmovetime
+				//得到滑动的速度
+				var speed = Math.abs(citop)/timedif
+				var mul = 0,mulTime = 0
+				//确保滑动了(滑动距离大于10px而且手指滑动结束后停留在屏幕的时间小于15毫秒，才能进行滑动操作)
+				if(Math.abs(len) > 10 && uptime < 15){
+					//如果速度大于1的话，距离就等于速度的3次方
+					if(speed >= 1){
+						mul = Math.pow(speed,3) * 15;
+						mulTime = speed/2
+					}else{
+						mul = 0
+						mulTime = 0
+					}
+					//得到子div的惯性滑动的距离
+					dif >= 0 ? mul = mul : mul = -mul;
+					var thisTop = parseInt($(this).css('top')) + mul;
+					//如果top值大于0就还原为0,小于-1200就还原为-1200
+					if(thisTop >= 0){thisTop = 0}
+					if(thisTop <= -1200){thisTop = -1200}
+					//给当前元素改变transiton
+					$(this).css('transition-property','top')
+					$(this).css('transition-duration',mulTime)
+					//设置滑动的top值
+					$(this).css({"top" : thisTop})
+					console.log(speed,mul,thisTop)
+				}
+				//如果offTop等于0，就恢复父级的滑动
+				//如果有滑动就等滑动结束再恢复
+				var setTime = 250
+				mul > 0 ? setTime = (setTime + 2000) : setTime = setTime;
+				var t = setTimeout(function(){
+					if(thisTop>=0 && isscroll){
+						isscroll = false;	//关掉开关
+						console.log(thisTop)
+						//添加父级元素的touch事件
+						onbind('#dd',"touchstart",startfun,false)
+						onbind('#dd',"touchmove",movefun,false)
+						onbind('#dd',"touchend",endfun,false)
+						//面板拉下来
+						$('#dd').animate({
+								top : '618'
+							},350,function(){
+								$('#dd').removeClass('hidX')
+							});	
+						$('#dd').removeClass('hidX');
+						//去掉子元素的touch事件
+						$('#aa')[0].removeEventListener('touchstart',chilstart)
+						$('#aa')[0].removeEventListener('touchmove',chilmove)
+						$('#aa')[0].removeEventListener('touchend',chilend)
+					}
+				},setTime)
+			}
+
+			//绑定子div事件
+			onbind('#aa','touchstart',chilstart)
+			onbind('#aa','touchmove',chilmove)
+			onbind('#aa','touchend',chilend)
+		}
+
+		var endfun = function (e) {
+      			e.stopPropagation();
+				e.preventDefault()
+				newTime = new Date().getTime()
+				differ = newTime - oldTime
+				//上滑，横滑动小于100
+				if(direction != null){
+					//上滑
+					if(differ < 200 && direction.y < 0 && Math.abs(direction.x) < 100){
+						$('#dd').animate({
+							top : '256'
+						},350,animateEnt());	
+					}
+					//下滑
+					if(differ < 200 && direction.y > 0 && Math.abs(direction.x) < 100){
+						$('#dd').animate({
+							top : '618'
+						},350,function(){
+							$('#dd').removeClass('hidX')
+						});	
+					}
+					//判断滑动结束时面板滑动大于558时，放下来
+					if(differ >= 200 && ntop >= 458){
+						$('#dd').animate({
+							top : '618'
+						},350);
+					}
+					//判断滑动结束时面板滑动大于150时，放上去来
+					if(differ >= 200 && ntop < 458){
+						$('#dd').animate({
+							top : '256'
+						},350,animateEnt());
+					}
+				}
+				//console.log(differ,direction.x)
+
+				this.removeEventListener('touchmove',this,false);
+				this.removeEventListener('touchend',this,false);
+			}
+
+		var startfun = function (e) {
+				e.preventDefault();
+				e.stopPropagation();
+				var touch = e.changedTouches[0];
+				isScrolling = {x:touch.pageX,y:touch.pageY};
+				oldTime = new Date().getTime()
+				//开始touch事件时，初始化prey
+				prey = isScrolling.y
+				//初始化top值
+				//btop = parseInt($('#dd').css('top')); //获取元素的topz值
+				ntop = parseInt($('#dd').css('top')); //获取元素的topz值
+			}
+
+		var  movefun = function (e) {
+				e.preventDefault();
+				e.stopPropagation();
+				//上一次的touchy值，默认取开始的时候
+				nprey = prey
+				//上一次的top值
+				var touch = e.changedTouches[0];
+				direction  = {x:touch.pageX - isScrolling.x,y:touch.pageY - isScrolling.y};
+				//得到这一个的touchy值
+				var mepre =  Math.abs(touch.pageY);
+				//把这次得到的touchy值赋值给prey
+				prey = Math.abs(touch.pageY);
+				newTime = new Date().getTime()
+				differ = newTime - oldTime
+				if(Math.abs(direction.x) < 100){
+					// 差值，这次的减上次的Y值
+					var dif = mepre - nprey;
+					// top值，默认658，减去touchy移动的值，往上
+					//如果上滑用ntop,否则下滑用btop
+					//if(direction.y < 0){
+						var itop = ntop + dif;
+							ntop = itop
+					// }else{
+					// 	var itop = btop + dif;
+					// 		btop = itop
+					// }
+					if(itop > 618){itop = 618}
+					if(itop < 256){itop = 256}
+					$('#dd').css('top',itop)
+				}
+			}
+		onbind('#dd',"touchstart",startfun,false);
+      	onbind('#dd',"touchend",endfun,false);
+      	onbind('#dd',"touchmove",movefun,false);
+
+      	
+      		
+	</script>
+</body>
+</html>

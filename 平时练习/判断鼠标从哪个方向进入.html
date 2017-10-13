@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>判断鼠标进入方向</title>
+</head>
+	<style>
+		#wrap{
+			width:300px;
+			height:300px;
+			background:#000;
+			margin:50px;
+			display:inline-block;
+			font-size:50px;
+			text-align:center;
+			line-height:300px;
+			color: #fff;
+			border-radius: 10px;
+		}
+	</style>
+<body>
+<div id="wrap">
+	 方向反馈
+</div>
+<script>
+	var wrap = document.getElementById('wrap'),
+
+	hoverDir = function( e ) {
+	    var w = wrap.offsetWidth,
+		    h = wrap.offsetHeight,
+		    x = ( e.clientX - wrap.offsetLeft - (w / 2) ) * ( w > h ? (h / w) : 1 ),
+		    y = ( e.clientY - wrap.offsetTop - (h / 2) ) * ( h > w ? (w / h) : 1 ),
+		    direction = Math.round( ( ( ( Math.atan2( y, x ) * ( 180 / Math.PI ) ) + 180 ) / 90 ) + 3 ) % 4,
+		    dirName = ['上方','右侧','下方','左侧'];
+
+		// 0 , 1 , 2 , 3 分别对应着上，右，下，左
+
+	    if( e.type == 'mouseover' || e.type == 'mouseenter' ){
+	        wrap.innerHTML = dirName[direction] + '进入';
+	    }else{
+	        wrap.innerHTML = dirName[direction] + '离开';
+	    }
+	};
+
+	wrap.addEventListener( 'mouseover', hoverDir, false );
+	wrap.addEventListener( 'mouseout', hoverDir, false );
+</script>
+</body>
+</html>

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+</head>
+<body>
+	<script>
+	    function jquery( ){
+	    	this.name = '小白'
+	    }
+	    jquery.prototype = {
+	    	setName : function( name ){ 
+	      		this.name = name; 
+	      		return this; 
+	  		},
+	  		each : function( arr , callback ){
+				for( var i = 0 ; i < arr.length ; i++ ){
+					callback.call( this , i , arr[i] ); 
+				} 
+			    return this; 
+			} 
+	    }
+		
+		var $ = new jquery( )
+		var data = [ '你好' , '我好' , '她也好' ]
+
+		$.setName( "旺财" ).each( data ,function( i , v ){
+			console.log( this )
+		}); 
+	</script>
+</body>
+</html>

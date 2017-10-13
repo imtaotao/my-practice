@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+</head>
+<body>
+	<script>
+		var obj = {
+			verifyBrowser() {
+				const inBrowser = typeof window !== 'undefined'
+				const UA = inBrowser && window.navigator.userAgent.toLowerCase()
+				obj.isIE 		= UA && /msie|trident/.test(UA)
+
+				obj.isIE9 		= UA && UA.indexOf('msie 9.0') > 0
+
+				obj.isEdge 	= UA && UA.indexOf('edge/') > 0
+
+				obj.isAndroid  = UA && UA.indexOf('android') > 0
+
+				obj.isIOS 		= UA && /iphone|ipad|ipod|ios/.test(UA)
+
+				obj.isChrome	= UA && /chrome\/\d+/.test(UA) 
+									 && !obj.isEdge
+
+				obj.isFirefox  = UA && /firefox\/\d+/.test(UA) 
+									 && !obj.isEdge
+
+				obj.isSafari   = UA && /safari\/\d+/.test(UA) 
+									 && !obj.isEdge
+									 && !obj.isChrome
+			}
+		}
+		obj.verifyBrowser()
+		console.dir(obj)
+	</script>
+</body>
+</html>

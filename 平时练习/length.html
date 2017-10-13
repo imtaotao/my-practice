@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+</head>
+<body>
+    <script>
+    Object.prototype._num = function(){
+    		var	num = 0;
+     		for( var k in this) {
+     			if( isNaN( k ) ){
+     				++num
+     			}
+     		}
+    	return num - 1
+    };
+
+    Object.defineProperty( Object.prototype, "length", {
+    	get : function() {
+    		return this._num()
+    	}
+    });
+
+    var a = {
+        b : '21',
+        c : '43'
+    }
+    </script>
+</body>
+</html>
