@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>队列</title>
+</head>
+<body>
+	<script>
+		let Queue = {
+			fx : {},
+			// 入队
+			on( type, fun ) {
+				// 入队操作
+				if( !Queue.fx[type] ) {
+					Queue.fx[type] = [ ( next, parm ) => fun( next, parm ) ];
+
+					// 进程锁
+					Queue.fx[type].open = false;
+
+					// 初始化
+					Queue.fire( type )
+				}else {
+					Queue.fx[type].push( ( next, parm ) => fun( next, parm ) );
+				};
+			},
+
+			fire( type, parm ) {
+				if( !Queue.fx[type] ) return;
+
+				if( !Queue.fx[type].open ) {
+					if( Object.keys( Queue.fx[type] ).length == 1 ) {
+						Queue.fx[type] = null;
+						console.log( `${type}：队列结束` )
+						return
+					}
+
+					// 下一个队列函数（出栈）
+					var first = Queue.fx[type].shift();
+
+					!!first && ( Queue.fx[type].open = true ) && first(function( parm ) {
+						// 解开进程锁
+						Queue.fx[type].open = false;
+						Queue.fire( type, parm );
+					}, parm )
+				};
+			}
+		};
+
+
+		// 测试
+		// ==================================================================================
+
+		// 队列一
+		for( let i = 0; i < 5; i++ ) {
+			Queue.on( 'test', function( next, parm ) {
+				setTimeout( function() {
+					console.log( new Date, i, parm )
+
+					next( `我是下标第 ${i} 个方法的里面的东西` )
+				}, 1000 )
+			} )
+			
+		}
+
+		// 队列二
+		for( let i = 0; i < 5; i++ ) {
+			Queue.on( 'TEST', function( next, parm ) {
+				setTimeout( function() {
+					console.error( new Date, i, parm )
+
+					next( `我是下标 ${i} 个方法的里面的东西` )
+				}, 2000 )
+			} )
+			
+		}
+	</script>
+</body>
+</html>
