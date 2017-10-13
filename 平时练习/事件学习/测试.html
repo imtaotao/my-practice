@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+</head>
+<body>
+	<script>
+		// ================================
+		// 数组
+		var hash = [];
+
+		hash['a'] = function() {
+			this.b = 111;
+		}
+
+		hash['a']();
+
+		console.dir( hash )
+
+		// ================================
+		// 对象
+		var obj = {};
+
+		obj['a'] = function() {
+			this.b = 111;
+		}
+
+		obj['a']();
+
+		console.dir( obj )
+
+		// 监测两者的类型
+		console.log( Object.prototype.toString.call( hash ))
+		console.log( Object.prototype.toString.call( obj ))
+	</script>
+</body>
+</html>

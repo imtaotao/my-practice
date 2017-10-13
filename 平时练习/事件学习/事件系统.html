@@ -1,0 +1,135 @@
+ 
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="IE=8" http-equiv="X-UA-Compatible"/>
+    <title>Event系统</title>
+    <style type="text/css">
+      #target{
+        width:400px;
+        height:100px;
+        background:blue;
+      }
+    </style>
+
+  </head>
+  <body>
+    <div id="target"></div>
+    <p id="p"></p>
+
+    <script type="text/javascript">
+
+      var dom = {};
+      Array.prototype.indexOf =  function ( el, index ) {
+
+        var n = this.length >>> 0,
+
+        i = index == null ? 0 : 
+                    index < 0 ? Math.max( 0, n + index ) : index;
+
+        for ( ; i < n; i++ )
+          if ( i in this && this[i] === el ) return i;
+        return -1;
+
+      };
+
+      //http://msdn.microsoft.com/zh-cn/library/bb383786.aspx
+      //移除 Array 对象中某个元素的第一个匹配项。
+      Array.prototype.remove= function ( item ) {
+
+        var index = this.indexOf( item );
+
+        if ( index !== -1 ) return this.removeAt( index );
+        return null;
+      };
+
+      //移除 Array 对象中指定位置的元素。
+      Array.prototype.removeAt= function ( index ) {
+        return this.splice( index , 1 )
+      };
+
+      dom.attachEvent = function( el , type , handler ) {
+
+        // 在每个元素上设置一个Object类型的私定义属性events
+        if ( !el.events ) el.events = {};
+
+        // 这个对象有许多键为事件类型，值为函数数组的属性
+        var handlers = el.events[type];
+
+        if ( !handlers ) {
+          handlers = el.events[type] = [];
+
+          // 如果它原来就以onXXXX方式绑定了某事件，那么把它置为事件数组的第一个元素
+          if ( el["on" + type] ) {
+            handlers[0] = el["on" + type];
+          }
+        }
+
+        //添加回调函数
+        handlers.push( handler )
+        //以onXXXX方式绑定我们的处理函数
+        el["on" + type] = dom.handleEvent;
+      };
+
+      dom.detachEvent = function( el , type , handler ) {
+
+        if ( el.events && el.events[type] ) {
+          el.events[type].remove( handler )
+        }
+      }
+      dom.handleEvent = function ( event ) {
+
+        var returnValue = true;
+
+        // 抓取事件对象（IE使用全局事件对象）
+        event = event || fixEvent((( this.ownerDocument || this.document || this ).parentWindow || window ).event );
+
+        // 获得对事件handler的哈希表的引用
+        var handlers = this.events[event.type];
+
+        // 执行每个事件handler
+        for( var i = 0 , n = handlers.length ; i < n ; i++ ){
+          if ( handlers[i]( event ) === false ) {
+            returnValue = false;
+          }
+        }
+        return returnValue;
+      };
+
+      function fixEvent( event ) {
+        // 添加W3C标准事件方法
+        event.preventDefault = fixEvent.preventDefault;
+        event.stopPropagation = fixEvent.stopPropagation;
+        return event;
+      };
+
+      fixEvent.preventDefault = function() {
+        this.returnValue = false;
+      };
+
+      fixEvent.stopPropagation = function() {
+        this.cancelBubble = true;
+      };
+
+      var $ = function( id ){
+        return document.getElementById( id )
+      }
+
+      window.onload = function() {
+        var a = function( e ) {
+          $( "p" ).innerHTML = e.clientX + "  " + e.clientY
+        }
+
+        dom.attachEvent( $( "target" ) , "mousemove" , a );
+
+        setTimeout( function() {
+
+          dom.detachEvent( $( "target" ) , "mousemove" , a );
+          
+        } , 10 * 1000 )
+      }
+     
+  </script>
+  </body>
+</html>

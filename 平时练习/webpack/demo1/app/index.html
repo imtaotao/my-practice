@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title><%= htmlWebpackPlugin.options.title %></title>
+	<script src="<%= htmlWebpackPlugin.files.chunks.main.entry %>"></script>
+</head>
+<body>
+	<%= htmlWebpackPlugin.options.data %>
+
+	<!-- 遍历查看htmlWebpackPlugin中的属性 -->
+	<% for( var k in htmlWebpackPlugin ) { %>
+		<%= k %>
+	<% } %>
+
+	<!-- 然后分别遍历files，options -->
+	<% for( var k in htmlWebpackPlugin.files ) { %>
+		<%= k %> : <%= JSON.stringify( htmlWebpackPlugin.files[k] )%>
+	<% } %>
+
+	<% for( var k in htmlWebpackPlugin.options ) { %>
+		<%= k %> : <%= JSON.stringify( htmlWebpackPlugin.options[k] )%>
+	<% } %>
+	<script src="<%= htmlWebpackPlugin.files.chunks.a.entry %>"></script>
+</head>
+</body>
+</html>

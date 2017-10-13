@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>终极matrix</title>
+	<style>
+		body{
+			transform-style : preserve-3d;
+			perspective : 1000px;
+		}
+		#aa{
+			width: 150px;
+			height: 150px;
+			background: rgba(0,0,0,.5);
+			border-radius:5px;
+			position: absolute;
+			top: 200px;
+			/*transform: translate3d( 100px,0,-100px );*/
+		}
+		#dd{
+			width: 150px;
+			height: 152px;
+			line-height: 150px;
+			font-size: 30px;
+			color: #fff;
+			text-align: center;
+			background: rgba(0,0,0,.5);
+			position: absolute;
+			cursor:pointer;
+			left: calc(50% - 50px);
+			bottom:  calc(50% - 300px);
+			border-radius: 5px;
+			/*transform: rotateZ(30deg) rotate3d(1,1,1,180deg) translateZ(-300px) scale3d(2,1.5,1) skewX(30deg);*/
+		}
+	</style>
+</head>
+<body>
+	<div id="dd" class="isdiv"></div>
+	<div id="aa" class="isdiv"></div>
+	<script>
+		( function( window ) {
+			function $$( select ) {
+				return new $$.prototype.init( select )
+			}
+
+			$$.prototype = {
+				constructor: $$,
+				init : function( select ) {
+					var elem = document.querySelectorAll( select );
+					this.elem = elem;
+					this.context = elem.length != 0 ? elem : document;
+					for( var i = 0; i < elem.length; i++ ) {
+						this[i] = elem[i]
+					};
+				},
+				// 工具函数
+				mtxSplit : function( elem ) {
+					var matrix = getComputedStyle( elem ).transform,
+						dimension = 'matrix(';
+
+					matrix === 'none' && ( matrix = 'matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)' );
+					matrix.indexOf( '3d' ) > -1 && ( dimension = 'matrix3d(' );
+					matrix = matrix.replace( dimension, '' ).replace(')', '' ).split(',');
+
+					// 2d和3d的兼容处理
+					if( matrix.length < 7 ) {
+						matrix = [matrix[0], matrix[1], 0, 0, matrix[2], matrix[3], 0, 0, 0, 0, 1, 0, matrix[4], matrix[5], 0, 1];
+					};
+
+					return matrix
+				},
+				// 工具函数，拼接成matrix3d字符串
+				mtxSplice : function( arr ) {
+					var newMatrix = 'matrix3d(';
+
+					arr.forEach(function( val, i ) {
+						newMatrix += i != arr.length - 1 ? val + ',' : val;	
+					});
+
+					return newMatrix += ')'
+				},
+
+				// transform 方法
+				// rotate系列API
+				rotate3d : function( x, y, z, deg ) {
+					var me = this,
+						transform = function( elem ) {
+						var matrix = me.mtxSplit( elem ),
+							agl = Math.PI * deg / 180,
+							numSqrt = Math.sqrt( x*x + y*y + z*z ),
+							ux = x / numSqrt,
+							uy = y / numSqrt,
+							uz = z / numSqrt;
+
+						// 计算
+						var r0 = ux * ux * ( 1 - Math.cos( agl ) ) + Math.cos( agl ),
+							r1 = ux * uy * ( 1 - Math.cos( agl ) ) + uz * Math.sin( agl ),
+							r2 = ux * uz * ( 1 - Math.cos( agl ) ) - uy * Math.sin( agl ),
+							r4 = ux * uy * ( 1 - Math.cos( agl ) ) - uz * Math.sin( agl ),
+							r5 = uy * uy * ( 1 - Math.cos( agl ) ) + Math.cos( agl ),
+							r6 = uz * uy * ( 1 - Math.cos( agl ) ) + ux * Math.sin( agl ),
+							r8 = ux * uz * ( 1 - Math.cos( agl ) ) + uy * Math.sin( agl ),
+							r9 = uy * uz * ( 1 - Math.cos( agl ) ) - ux * Math.sin( agl ),
+							r10 = uz * uz * ( 1 - Math.cos( agl ) ) + Math.cos( agl );
+
+						var d0 = matrix[0] * r0 + matrix[4] * r1 + matrix[8] * r2,
+							d1 = matrix[1] * r0 + matrix[5] * r1 + matrix[9] * r2,
+							d2 = matrix[2] * r0 + matrix[6] * r1 + matrix[10] * r2,
+							d3 = matrix[3] * r0 + matrix[7] * r1 + matrix[11] * r2,
+							d4 = matrix[0] * r4 + matrix[4] * r5 + matrix[8] * r6,
+							d5 = matrix[1] * r4 + matrix[5] * r5 + matrix[9] * r6,
+							d6 = matrix[2] * r4 + matrix[6] * r5 + matrix[10] * r6,
+							d7 = matrix[3] * r4 + matrix[7] * r5 + matrix[11] * r6,
+							d8 = matrix[0] * r8 + matrix[4] * r9 + matrix[8] * r10,
+							d9 = matrix[1] * r8 + matrix[5] * r9 + matrix[9] * r10,
+							d10 = matrix[2] * r8 + matrix[6] * r9 + matrix[10] * r10,
+							d11 = matrix[3] * r8 + matrix[7] * r9 + matrix[11] * r10,
+							arr = [d0, d1, d2, d3, d4, d5, d6, d7, d8, d9, d10, d11, matrix[12], matrix[13], matrix[14], matrix[15]];
+
+						return  me.mtxSplice( arr );
+					};
+
+					// 改变元素的style.transfrom值
+					for( var i = 0; i < this.elem.length; i++ ) {
+						this.elem[i].style.transform = transform( this.elem[i] );
+					};
+					return this;
+				},
+				rotateX : function( deg ) {
+					return this.rotate3d( 1, 0, 0, deg );
+				},
+				rotateY : function( deg ) {
+					return this.rotate3d( 0, 1, 0, deg );
+				},
+				rotateZ : function( deg ) {
+					return this.rotate3d( 0, 0, 1, deg );
+				},
+				rotate : function( deg ) {
+					return this.rotate3d( 0, 0, 1, deg );
+				},
+
+				// translate系列API
+				translate3d : function( x, y, z ) {
+					console.log(z)
+					var me = this,
+					transform = function( elem ) {
+						var  matrix = me.mtxSplit( elem );
+						// 计算
+						var c12 = x * matrix[0] + y * matrix[4] + z * matrix[8] + Number( matrix[12] ),
+							c13 = x * matrix[1] + y * matrix[5] + z * matrix[9] + Number( matrix[13] ),
+							c14 = x * matrix[2] + y * matrix[6] + z * matrix[10] + Number( matrix[14] ),
+							c15 = x * matrix[3] + y * matrix[7] + z * matrix[11] + Number( matrix[15] ),
+							arr = [matrix[0], matrix[1], matrix[2], matrix[3], matrix[4], matrix[5], matrix[6], matrix[7], matrix[8], matrix[9], matrix[10], matrix[11], c12, c13, c14, c15];
+
+						return me.mtxSplice( arr );
+					}
+					
+					// 改变元素的style.transfrom值
+					for( var i = 0; i < this.elem.length; i++ ) {
+						this.elem[i].style.transform = transform( this.elem[i] );
+					};
+					return this;
+				},
+				translateX : function( x ) {
+					return this.translate3d( x, 0, 0 );
+				},
+				translateY : function( y ) {
+					return this.translate3d( 0, y, 0 );
+				},
+				translateZ : function( z ) {
+					return this.translate3d( 0, 0, z );
+				},
+				translate : function( x, y ) {
+					return this.translate3d( x, y, 0 );
+				},
+
+				// scale系列API
+				scale3d : function( x, y, z ) {
+					var me = this,
+					transform = function( elem ) {
+						var matrix = me.mtxSplit( elem );
+						// 计算
+						var s0 = matrix[0] * x, s4 = matrix[4] * y, s8 = matrix[8] * z,
+							s1 = matrix[1] * x, s5 = matrix[5] * y, s9 = matrix[9] * z,
+							s2 = matrix[2] * x,	s6 = matrix[6] * y, s10 = matrix[10] * z,
+							s3 = matrix[3] * x, s7 = matrix[7] * y, s11 = matrix[11] * z,
+							arr = [s0, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, matrix[12], matrix[13], matrix[14], matrix[15]];
+						return me.mtxSplice( arr );
+					};
+					// 改变元素的style.transfrom值
+					for( var i = 0; i < this.elem.length; i++ ) {
+						this.elem[i].style.transform = transform( this.elem[i] );
+					};
+					return this;
+				},
+				scaleX : function( x ) {
+					return this.scale3d( x, 1, 1 );
+				},
+				scaleY : function( y ) {
+					return this.scale3d( 1, y, 1 );
+				},
+				scaleZ : function( z ) {
+					return this.scale3d( 1, 1, z );
+				},
+				scale : function( x, y ) {
+					return this.scale3d( x, y, 1 );
+				},
+
+				// skew 系列API
+				skew : function( x, y ) {
+					var me = this, 
+					transform = function( elem ) {
+						var matrix = me.mtxSplit( elem ),
+							xtan = Math.tan ( Math.PI * x / 180 ),
+							ytan = Math.tan ( Math.PI * y / 180 );
+
+						var f0 = Number( matrix[0] ) + matrix[4] * ytan,
+							f1 = Number( matrix[1] ) + matrix[5] * ytan,
+							f2 = Number( matrix[2] ) + matrix[6] * ytan,
+							f3 = Number( matrix[3] ) + matrix[7] * ytan,
+							f4 = matrix[0] * xtan + Number( matrix[4] ),
+							f5 = matrix[1] * xtan + Number( matrix[5] ),
+							f6 = matrix[2] * xtan + Number( matrix[6] ),
+							f7 = matrix[3] * xtan + Number( matrix[7] ),
+							arr = [f0, f1, f2, f3, f4, f5, f6, f7, matrix[8], matrix[9], matrix[10], matrix[11], matrix[12], matrix[13], matrix[14], matrix[15]];
+
+						return me.mtxSplice( arr );
+					};
+
+					// 改变元素的style.transfrom值
+					for( var i = 0; i < this.elem.length; i++ ) {
+						this.elem[i].style.transform = transform( this.elem[i] );
+					};
+					return this;
+				},
+				skewX : function( x ) {
+					return this.skew( x, 0 );
+				},
+				skewY : function( y ) {
+					return this.skew( 0, y );
+				}
+			};
+
+			$$.prototype.init.prototype = $$.prototype;
+			window.$$ = $$;
+
+		} )( window )
+
+	</script>
+</body>
+</html>

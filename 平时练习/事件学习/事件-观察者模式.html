@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>事件之观察者模式</title>
+	<style>
+		#dd{
+			width: 100px;
+			height: 30px;
+			background: #333;
+			color: #fff;
+			font-weight: 700;
+			border-radius: 5px;
+			text-align: center;
+			line-height: 30px;
+			cursor: pointer;
+		}
+	</style>
+</head>
+<body>
+	<div id="dd">点击</div>
+	<script>
+		function $ ( select ) {
+			return document.getElementById( select )
+		}
+		//注册
+		HTMLElement.prototype.on = function ( type , fn , capture ) {
+			var el = this;
+        
+	        if ( window.addEventListener ) {
+	            el.addEventListener( type , fn , capture );
+
+	            var ev = document.createEvent( "HTMLEvents" );
+
+	            ev.initEvent( type , capture || false , false );
+	            
+	            // 在元素上存储创建的事件，方便自定义触发
+	            if ( !el["ev" + type] ) {
+	                el["ev" + type] = ev;
+	            }
+	            
+	        } 
+		} 
+
+		//触发
+		HTMLElement.prototype.firelistener = function ( type ) {
+			var el = this;
+	        if (typeof type === "string") {
+	            if ( document.dispatchEvent ) {
+	                if (el["ev" + type]) {
+	                    el.dispatchEvent( el["ev" + type] );
+	                }
+	            } 
+	        }    
+		}
+
+		$( 'dd' ).on( 'con' , function( e ) {
+			console.log( e )
+		})
+		//$( 'dd' ).firelistener( 'con' )
+
+		var event = new Event('1');
+
+		// Listen for the event.
+		$( 'dd' ).addEventListener('1', function (e) {
+		 	console.log( e)
+		}, false);
+
+		// Dispatch the event.
+		$( 'dd' ).dispatchEvent(event);
+
+	</script>
+</body>
+</html>

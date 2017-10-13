@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+	<style>
+		*{
+			margin:0;
+			padding: 0;
+			box-sizing: border-box;
+		}
+		#btn{
+			width: 100px;
+			height: 40px;
+			line-height: 40px;
+			border-radius: 5px;
+			cursor: pointer;
+			background: rgba(0,0,0,.4);
+			text-align: center;
+			color: #fff;
+			font-weight: bold;
+		}
+		.filter-ware{
+			-webkit-appearance :none;
+			height: 8px;
+			width: 170px;
+			background: #999;
+			border-radius: 10px;
+			outline: none;
+		}
+		.filter-ware::-webkit-slider-thumb{
+			-webkit-appearance: none;
+			width: 16px;
+			height: 16px;
+			margin-top: 0px;
+			background: #fff;
+			border-radius: 50%;
+			border:1px solid #8cbf51;
+			box-shadow: 0 .125em .125em #8cbf51;
+		}
+		.rt{
+			float: right;
+		}
+		.lf{
+			float: left;
+		}
+		p{
+			width:100%;
+			height: 35px;
+			overflow: hidden;
+			margin-top: 20px;
+		}
+		.filter-box{
+			margin-left: 235px;
+   			margin-top: -150px;
+			width: 200px;
+			transform: rotateZ(270deg) ;
+		}
+		span{
+			width: 25px;
+			display: inline-block;
+			transform: rotateZ(90deg);
+		}
+		.font-height{
+			height: 100%;
+		}
+	</style>
+</head>
+<body>
+	<div id="btn">播放</div>
+	<div class="filter-box">
+		<p>
+			<span class="rt font-height">-36</span>
+			<span class="lf font-height">+36</span>
+		</p>
+		<p>
+			<span>27</span>
+			<input type="range" class="filter-ware" max="72" max="36" id="27">
+		</p>
+		<p>
+			<span>55</span>
+			<input type="range" class="filter-ware" max="72" max="36" id="55">
+		</p>
+		<p>
+			<span>109</span>
+			<input type="range" class="filter-ware" max="72" max="36" id="109">
+		</p>
+		<p>
+			<span>219</span>
+			<input type="range" class="filter-ware" max="72" max="36" id="219">
+		</p>
+		<p>
+			<span>438</span>
+			<input type="range" class="filter-ware" max="72" max="36" id="438">
+		</p>
+		<p>
+			<span>875</span>
+			<input type="range" class="filter-ware" max="72" max="36" id="875">
+		</p>
+		<p>
+			<span>2k</span>
+			<input type="range" class="filter-ware" max="72" max="36" id="2000">
+		</p>
+		<p>
+			<span>4k</span>
+			<input type="range" class="filter-ware" max="72" max="36" id="4000">
+		</p>
+		<p>
+			<span>7k</span>
+			<input type="range" class="filter-ware" max="72" max="36" id="7000">
+		</p>
+		<p>
+			<span>14k</span>
+			<input type="range" class="filter-ware" max="72" max="36" id="14000">
+		</p>
+	</div>
+	<script>
+		let filter = {};
+		let hz = [27, 55, 109, 219, 438, 875, 2000, 4000, 7000, 14000];
+		btn.addEventListener( 'click', function( e ) {
+			const self = this;
+			if( !self.source ) {
+				ajax({
+					method : 'GET',
+					url : './getMusic?name=music',
+					dataType : "arraybuffer",
+					success : function( res ) {
+						console.log( 121 )
+						file = res.target.response;
+						decode.call( self, file );
+					}
+				});
+			}else{
+				play.call( self )
+			}
+		});
+
+		function ajax( opt ) {
+			let xhr = new XMLHttpRequest();
+			xhr.open( opt.method, opt.url );
+			!!opt.dataType && ( xhr.responseType = opt.dataType );
+			xhr.onload = opt.success;
+			xhr.send( opt.parma );
+		};
+
+		function decode( file ) {
+			let	AudioContext = window.AudioContext || window.webkitAudioContext;
+			let ac = new AudioContext();
+			//控制音频播放，暂停
+			this.source = ac.createBufferSource();
+			//控制音量大小
+			let gainNode = ac[ac.createGain ? 'createGain' : 'createGainNode']();
+
+			ac.decodeAudioData( file, buffer => {
+				//赋值给sourece的buffer属性,并连接
+				this.source.buffer = buffer;
+				let preFilet = ac.destination;
+				for( let i = 0; i < 10; i++ ) {
+					const nowFilet = createFilter( ac, hz[i] );
+					nowFilet.connect( preFilet );
+					preFilet = nowFilet;
+				};
+
+				this.source.connect( preFilet );
+				this.source.loop = true;
+
+				this.source[this.source.start ? 'start' : 'noteOn']( 0 );	// 播放
+				this.innerHTML = '暂停';
+				changeFilter();	//均衡器
+
+				// 循环的时候重新计时
+				let times = 0;
+				let duration = this.source.buffer.duration;
+				setInterval( () => {
+					let currentTime = ac.currentTime - duration * times;
+					// 如果大于，就是在循环播放了
+					currentTime >= duration && times++
+					
+					// console.log( `当前歌曲播放到：${currentTime.toFixed(2)}s 
+					// 	—— 总时长为：${duration.toFixed(2)}s` );
+
+				} , 1000 )
+				// 传递一波ac
+				play( ac );
+			});
+		}
+
+		// 过滤器
+		function createFilter( ac, value ) {
+			const ra = ac.createBiquadFilter();
+			ra.type = 'peaking';
+			ra.Q.value = 10;
+			ra.frequency.value = value;
+			ra.gain.value = 0;
+
+			filter[value] = ra;
+			return ra;
+		};
+
+		// 均衡器添加事件
+		function changeFilter() {
+			hz.forEach( val => {
+				document.getElementById( '' + val ).addEventListener( 'input', function( e ) {
+					const value = this.value - 36;
+					filter[val].gain.value = value;
+				});
+			});
+		};
+
+		function play( ac ) {
+			if( !!ac ) {
+				play.ac = ac
+				return
+			};
+
+			if( !this.open ) {
+				this.open = true;
+				this.innerHTML = '播放';
+				play.ac.suspend();
+			}else {
+				this.open = false;
+				this.innerHTML = '暂停';
+				play.ac.resume();
+			};
+		}
+
+	</script>
+</body>
+</html>

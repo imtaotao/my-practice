@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>事件小测</title>
+	<style>
+		#dd{
+			width: 100px;
+			height: 30px;
+			background: #333;
+			color: #fff;
+			font-weight: 700;
+			border-radius: 5px;
+			text-align: center;
+			line-height: 30px;
+			cursor: pointer;
+		}
+	</style>
+</head>
+<body>
+	<div id="dd">点击</div>
+	<script>
+		var div = document.getElementById( 'dd' );
+
+		//注册
+		function addEvent( el , type , fn , capture ) {
+			var defind = type.indexOf( 'DE' );
+
+			var origin = type;
+			var type = "on" + type;
+
+			//得到事件的回调（本质是节点的属性）
+			var old = el[type];
+
+			//如果元素上没有这个事件
+			if ( typeof el[type] != 'function' && defind < 0 ) {
+				//则绑定为dom0级事件
+			    el[type] = fn
+			}else {
+				if( defind > -1 ) {
+					el.addEventListener( origin , fn , capture );
+
+				}else {
+				    //如果原先有dom事件存在的话
+				    el[type] = function() {
+				    	//调用所有的回调函数
+				        old();
+				        fn();
+				    }
+			    }
+			}
+		}
+
+		//触发
+		function fire( el , type ) {
+			var event = new Event( type );
+			el.dispatchEvent( event );
+		}
+
+		// ===============================================================================
+		//这里添加俩事件回调函数进行测试，证明这样添加自定义事件是通过dom2级事件的方式添加的
+		addEvent( div , 'DEaa' , function( e ) {
+			console.log( this )
+		})
+
+		addEvent( div , 'DEaa' , function( e ) {
+			console.log( 11 )
+		})
+
+		fire( div , 'DEaa' )
+	</script>
+</body>
+</html>

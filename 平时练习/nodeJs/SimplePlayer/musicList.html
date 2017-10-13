@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>简单的音乐列表</title>
+	<link rel="stylesheet" href="musicList.css">
+</head>
+<body>
+	<h3 class="title">进入文件目录，在node里面输入 “node server_music.js” 启动服务器</h3>
+	<ul class="music-box">
+		<li>
+			<span>歌曲（点击播放）</span>
+			<span>时长</span>
+		</li>
+		<li>
+			<span class="music-name">Giulia - Ce Frumoasa E Iubirea</span>
+			<span class="music-time">-</span>
+		</li>
+		<li>
+			<span class="music-name">music</span>
+			<span class="music-time">-</span>
+		</li>
+		<li>
+			<span class="music-name">Moonlight</span>
+			<span class="music-time">-</span>
+		</li>
+		<li>
+			<span class="music-name">clock</span>
+			<span class="music-time">-</span>
+		</li>
+		<li>
+			<span class="music-name">Inspire</span>
+			<span class="music-time">-</span>
+		</li>
+		<li>
+			<span class="music-name">Summertime</span>
+			<span class="music-time">-</span>
+		</li>
+		<li>
+			<span class="music-name">她说 (Live)</span>
+			<span class="music-time">-</span>
+		</li>
+		<li>
+			<span class="music-name">融化</span>
+			<span class="music-time">-</span>
+		</li>
+		<li>
+			<span class="music-name">桃花诺</span>
+			<span class="music-time">-</span>
+		</li>
+		<li>
+			<span class="music-name">Thomas Bergersen - Empire Of Angels - 纯音乐版</span>
+			<span class="music-time">-</span>
+		</li>
+		<li>
+			<span class="music-name">曹芙嘉 - 当你老了</span>
+			<span class="music-time">-</span>
+		</li>
+		<li>
+			<span class="music-name">毕夏、金池 - 她在睡前哭泣</span>
+			<span class="music-time">-</span>
+		</li>
+		<li>
+			<span class="music-name">纯音乐 - 仙剑神曲之江淮</span>
+			<span class="music-time">-</span>
+		</li>
+		<li>
+			<span class="music-name">和田光司 - Butter-Fly - 钢琴版</span>
+			<span class="music-time">-</span>
+		</li>
+		<li>
+			<span class="music-name">李琦 - 风中少年</span>
+			<span class="music-time">-</span>
+		</li>
+		<li>
+			<span class="music-name">犬夜叉主题曲 - 穿越时空的思念</span>
+			<span class="music-time">-</span>
+		</li>
+		<li>
+			<span class="music-name">孙子涵 - 唐人</span>
+			<span class="music-time">-</span>
+		</li>
+		<li>
+			<span class="music-name">佚名 - 问道 - 凤凰山</span>
+			<span class="music-time">-</span>
+		</li>
+	</ul>
+	<div id="js_play" class="btn">播放</div>
+	<select class="select-mode"  id="js_selectMusic" data-select="box">
+		<option value="order">顺序播放</option>
+		<option value="loop">单曲循环</option>
+	</select>
+	<p>
+		声音 <input type="range" min="0" max="100" value="50" class="volume" id="js_volume">
+	</p>
+	<div class="font-title">
+		<span id="js_currentTime">-</span>
+		<span id="js_sumTime">/ -</span>
+	</div>
+	<input type="range" min="0" max="100" value="0" class="progress-color" id="js_progress">
+	<p class="lyrics-box">
+		<span class="lyrics-font" id="js_lyricsFont">
+			......
+		</span>
+	</p>
+	<div class="filter-box">
+		<p class="p">
+			<span class="rt font-height span">+14</span>
+			<span class="lf font-height span">-14</span>
+		</p>
+		<p class="p">
+			<span class="span">31</span>
+			<input type="range" class="filter-ware" max="28" max="14" id="31">
+		</p>
+		<p class="p">
+			<span class="span">62</span>
+			<input type="range" class="filter-ware" max="28" max="14" id="62">
+		</p>
+		<p class="p">
+			<span class="span">125</span>
+			<input type="range" class="filter-ware" max="28" max="14" id="125">
+		</p>
+		<p class="p">
+			<span class="span">250</span>
+			<input type="range" class="filter-ware" max="28" max="14" id="250">
+		</p>
+		<p class="p">
+			<span class="span">500</span>
+			<input type="range" class="filter-ware" max="28" value="14" id="500">
+		</p>
+		<p class="p">
+			<span class="span">1000</span>
+			<input type="range" class="filter-ware" max="28" value="14" id="1000">
+		</p>
+		<p class="p">
+			<span class="span">2k</span>
+			<input type="range" class="filter-ware" max="28" value="14" id="2000">
+		</p>
+		<p class="p">
+			<span class="span">4k</span>
+			<input type="range" class="filter-ware" max="28" value="14" id="4000">
+		</p>
+		<p class="p">
+			<span class="span">8k</span>
+			<input type="range" class="filter-ware" max="28" value="14" id="8000">
+		</p>
+		<p class="p">
+			<span class="span">16k</span>
+			<input type="range" class="filter-ware" max="28" value="14" id="16000">
+		</p>
+	</div>
+	<div class="filter-model" id="js_filterModel">
+		<span class="filter-active" data-name="defind">自定义</span>
+		<span data-name="electronicMusic">电子乐</span>
+		<span data-name="rocking">摇滚</span>
+		<span data-name="rural" id="dd">乡村</span>
+		<span data-name="slowSong">慢歌</span>
+		<span data-name="jazz">爵士</span>
+		<span data-name="classical">古典</span>
+		<span data-name="blues">蓝调</span>
+		<span data-name="dance">舞曲</span>
+		<span data-name="popular">流行</span>
+	</div>
+	<script src="jquery.js"></script>
+	<script src="selectBox.js"></script>
+	<script src="musicList.js"></script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+{
+  "name": "demo",
+  "version": "1.0.0",
+  "description": "了不起的node.js写的一些demo",
+  "main": "index.js",
+  "scripts": {
+    "test": "node demo1.js"
+  },
+  "author": "taotao",
+  "license": "ISC"
+}

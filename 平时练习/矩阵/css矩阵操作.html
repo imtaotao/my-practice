@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>矩阵2d操作</title>
+</head>
+<style>
+	body{
+		position: relative;
+		margin: 0;
+	}
+	#aa{
+		width: 150px;
+		height: 150px;
+		background: rgba(0,0,0,.5);
+		border-radius:5px;
+		position: absolute;
+		transform: rotate(30deg) scale(2,1) translate(100px,30px) rotate(30deg);
+		/*transform: matrix(1.73205, 0.5, -1, 0.866025, 100, 30);*/
+	}
+	#dd{
+		width: 150px;
+		height: 150px;
+		background: rgba(117,49,49,.5);
+		border-radius:5px;
+		position: absolute;
+		transform: matrix(1.73205, 0.5, -1, 0.866025, 100, 30);
+	}
+</style>
+<body>
+	<div id="aa"></div>
+	<!-- <div id="dd"></div> -->
+	<script>
+		// 切割数组
+		function transformSplit( elem ) {
+			// 默认 matrix(1, 0, 0, 1,0, 0)
+			var transform = getComputedStyle( elem ).transform;
+			transform === 'none' && ( transform = 'matrix(1, 0, 0, 1, 0, 0)' );
+
+			return transform.replace('matrix(', '' ).replace(')', '' ).split(',');
+		}
+
+		function transformCacant( transform ) {
+			var scale = 'matrix(';
+			transform.forEach(function( val, i ) {
+				scale += i != transform.length - 1 ? val + ',' : val;	
+			})
+			return scale += ')'	
+		}
+
+		// 拉伸
+		// elem 元素
+		function scale( elem, x, y ) {
+			var transform = transformSplit( elem ),
+				scale = 'matrix(';
+
+			transform[0] *= x;
+			transform[1] *= x;
+			transform[2] *= y;
+			transform[3] *= y;
+
+			return transformCacant( transform )	
+			
+		};
+
+		// translate
+		function translate( elem, x, y ) {
+			var transform = transformSplit( elem );
+				transform[4] = Number( transform[4] ),
+				transform[5] = Number( transform[5] );
+
+			transform[4] += x;
+			transform[5] += y;
+
+			return transformCacant( transform )	
+		}
+
+		// rotate
+		function rotate( elem, deg ) {
+			var transform = transformSplit( elem ),
+				// 保存值（这里不需要深拷贝）
+				transformOne = transform[0],
+				transformThree = transform[3];
+
+			transform[0] = Math.cos( Math.PI * deg / 180 ) * transformOne;
+			transform[1] = Math.sin( Math.PI * deg / 180 ) * transformThree;
+			transform[2] = -Math.sin( Math.PI * deg / 180 ) * transformOne;
+			transform[3] = Math.cos( Math.PI * deg / 180 ) * transformThree;
+
+			console.log( transformCacant( transform ))
+			return transformCacant( transform )
+		}
+
+		// 反余弦得到角度值
+		function deg( deg ) {
+			return 180 / ( Math.PI / Math.asin( deg ) )
+		}
+
+
+
+		// 测试代码
+		// matrix(1.73205, 0.5, -1, 0.866025, 2, 1)
+		// matrix(1.73205, 0.5, -1, 0.866025, 2.4641, 1.86603)
+		// =============================================================================
+		// aa.style.transform =  'matrix(1.73205, 0.5, -1, 0.866025, 143, 75.8)';
+		// aa.style.transform = translate( aa, 100, 0 );
+		// rotate( aa, 25 )
+		// console.log( translate( aa, 2, 1 ) )
+		// (1.73205, 1, -0.5, 0.866025, 158.205, 125.981)
+		console.log( getComputedStyle( aa ).transform )
+	</script>
+</body>
+</html>

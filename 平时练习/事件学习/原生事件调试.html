@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+	<style>
+		#dd{
+			width: 100px;
+			height: 30px;
+			background: #333;
+			color: #fff;
+			font-weight: 700;
+			border-radius: 5px;
+			text-align: center;
+			line-height: 30px;
+			cursor: pointer;
+		}
+	</style>
+</head>
+<body>
+	<div id="dd">点击</div>
+	<script>
+		var dd = document.getElementById( 'dd' );
+
+		dd.addEventListener( 'click' , function( e ) {
+			console.log( e.expando )
+		})
+
+		dd.addEventListener( 'tab' , function( e ) {
+			
+		})
+	</script>
+</body>
+</html>

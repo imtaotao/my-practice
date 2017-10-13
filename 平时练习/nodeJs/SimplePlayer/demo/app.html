@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width">
+	<title>Voice-change-O-matic</title>
+	
+	<!--[if le IE 9]>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="scripts/respond.js"></script>
+    <![endif]-->
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
+    <link href='https://fonts.googleapis.com/css?family=Righteous|Nova+Square' rel='stylesheet' type='text/css'>
+	  <link href="normalize.css" rel="stylesheet" type="text/css">
+    <link href="app.css" rel="stylesheet" type="text/css">
+	
+</head>
+<body>
+  <div class="wrapper">
+    
+    <header>
+      <h1>Voice-change-O-matic</h1>
+    </header>
+
+    <canvas class="visualizer" width="640" height="100"></canvas> 
+
+    <form class="controls">
+      <div>
+        <label for="voice">语音设置</label>
+        <select id="voice" name="voice">
+          <option value="distortion">失真</option>
+          <option value="convolver">混响</option>
+          <option value="biquad">低音增强</option>
+          <option value="off" selected>关闭</option>
+        </select>
+      </div>
+      <div>
+        <label for="visual">可视化设置</label>
+        <select id="visual" name="visual">
+          <option value="sinewave">正弦信号</option>
+          <option value="frequencybars" selected>频率栏</option>
+          <option value="off">关闭</option>
+        </select>
+      </div>
+      <div>
+        <a class="mute">静音</a>
+      </div>
+    </form>
+
+
+  </div>
+
+  <label for="toggle">❔</label>
+  <input type="checkbox" id="toggle">
+  <aside>
+    <h2>信息</h2>
+
+    <p>Voice-change-O-matic使用:</p>
+
+    <ul>
+
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/Navigator.getUserMedia">getUserMedia</a>, 目前在Firefox，Opera（桌面/移动）和Chrome（仅限桌面）中支持此功能。Firefox不需要前缀; 其他需要<code>webkit</code> 前缀.</li>
+
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API">Web Audio API</a>, 目前在Firefox，Chrome，Safari（桌面/手机）和Opera（仅限桌面）中支持此功能。 Firefox和Opera不需要前缀; Chrome需要<code>webkit</code> 前缀.</li>
+
+    </ul>
+
+
+
+    <button id="install-btn">安装 app</button>
+  </aside>
+
+  <!-- The following element pulls in the script for the default template functionality -->
+      
+    <script src="install.js"></script>  
+
+    <!-- Below is your custom application script -->
+
+    <script src="app.js"></script>
+	
+</body>
+</html>

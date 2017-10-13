@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>音乐可视化</title>
+	<style>
+		.container{
+			width: 652px;
+			margin-left: 350px;
+			margin-top: 100px;
+			position: relative;
+			opacity: 0.8;
+			z-index: 1;
+		}
+		.canvas-box{
+			width: 450px;
+			height: 200px;
+			position: absolute;
+			left: 100px;
+			/*background: #eef2f3;*/
+			background: #fff;
+			border:1px solid #bbb;
+			border-right: none;
+			border-left: none;
+			z-index: 3;
+			box-shadow: 0 2px 0 #6d8388;
+		}
+		.music-header{
+			height: 280px;
+			width: 280px;
+			border-radius: 50%;
+			background: #fff;
+			position: absolute;
+			top:50%;
+			margin-top:-40px;
+			left: -140px;
+			z-index: 4;
+		}
+		.can-cover{
+			width: 220px;
+			height: 220px;
+			background: transparent;
+			position: absolute;
+			left: 0;
+			top:0;
+			border-radius: 50%;
+			border: 30px solid rgba( 0 , 0 , 0 ,.5 );
+			z-index:5;
+		}
+		#can{
+			margin:15px 0 0 15px;
+		}
+		.circle{
+			height: 200px;
+			width: 200px;
+			border-radius: 50%;	
+			position: absolute;
+			border:1px solid #bbb;
+			right: 0;
+			/*background: #eef2f3;*/
+			background: #fff;
+			z-index: 2;
+			box-shadow: 0 2px 4px #3b4547;
+		}
+		#file{
+			width: 100px;
+			border-radius: 5px;
+			height: 20px;
+			position: relative;
+			top: 100px;
+			left: 0;
+			opacity: 1;
+		}
+		#volume{
+			-webkit-appearance :none;
+			height: 8px;
+			background: #999;
+			border-radius: 10px;
+			outline: none;
+		}
+		/*calc(25%+15)*/
+		#volume::-webkit-slider-thumb{
+			-webkit-appearance: none;
+			width: 16px;
+			height: 16px;
+			margin-top: -4px;
+			background: #fff;
+			border-radius: 50%;
+			border:1px solid #999;
+			box-shadow: 0 .125em .125em #3b4547;
+		}
+	</style>
+</head>
+<body>
+	<input type="file" id="file">
+	<p>
+		声音 <input type="range" min="0" max="100" value="50" id="volume">
+	</p>
+	<div class="container">
+		<div class="music-header">
+			<div class="can-cover"></div>
+			<canvas id="can" width="250" height="250">
+				不支持
+			</canvas>
+		</div>
+		<div class="canvas-box">
+			<canvas id="canvas" width="350" height="100" style="margin:50px 20px 60px 80px">
+				不支持
+			</canvas>
+		</div>
+		<div class="circle"></div>
+	</div>
+	<script>
+		//绘制圆角矩形
+		CanvasRenderingContext2D.prototype.roundRect = function ( x , y , w , h , r ) {
+		    ( w < 2 * r ) && ( r = w / 2 );
+		    ( h < 2 * r ) && ( r = h / 2 );
+		    this.beginPath();
+		    this.moveTo( x + r , y );
+		    this.arcTo( x+w , y , x+w , y+h , r );//右上
+		    this.arcTo( x+w , y+h , x , y+h , 0 );//右下
+		    this.arcTo( x, y+h, x , y , 0 );//左下
+		    this.arcTo( x , y , x+w , y , r );//左上
+
+		    this.closePath();
+		    return this;
+		}
+
+		//音频资源分析对象
+		audioAnalysis = function( param ) {
+			//保存audio上下文
+			var	AudioContext = window.AudioContext || window.webkitAudioContext;
+			this.ac = new AudioContext();
+			//保存参数
+			this.param = param;
+			//保存音频文件
+			this.file = param.file;
+			//保存计数器与播放开关
+			this.count = 0;
+			this.volume = param.volume;
+			this.isplay = audioAnalysis.isplay;
+			//保存大小，小于16就会出问题
+			param.size < 16 ? this.size = 16 : this.size = param.size;
+		}
+
+		//开关，放在外面，如果是在构造函数里面，每次new的时候都会重新赋值为null
+		audioAnalysis.isplay = null;
+		audioAnalysis.istranslate = true;
+		audioAnalysis.src = null;
+		audioAnalysis.preAimate = null;
+		audioAnalysis.preraf = null;
+		audioAnalysis.Time = 0;
+		
+		//原型对象
+		audioAnalysis.prototype = {
+			constructor : audioAnalysis,
+			//解码文件
+			decode : function(){
+				var me = this,
+					file = me.file,
+					ac = me.ac;
+					reader = new FileReader(),
+					me.analyser = ac.createAnalyser(),
+					n = ++me.count;
+
+				//可视化------------------------------------------------（这段是使音频可视化）
+				me.visualizer();
+
+				//读取文件,并解码---------------------------------------（这段是处理音频的播放暂停等）
+				//切换时，正在播放就停止
+				!!me.isplay && me.isplay[me.isplay.stop ? 'stop' : 'noteOff']();
+				reader.readAsArrayBuffer( file );
+				reader.onload = function() {
+					//解码
+					//解码完成，这个作用域的n才能得到外界的n值,而count是全局的在一直变化，利用的闭包的原理
+					if( n != me.count ) {
+							//清除动画叠加
+							window.cancelAnimationFrame( audioAnalysis.preraf );
+							return;
+					}
+
+					ac.decodeAudioData( reader.result , function( buffer ) {
+						//果不相等就是切换了音频资源，即使解码成功也不处理播放，否则会导致同时播放两端音频
+						if( n != me.count ) {
+							//清除动画叠加
+							window.cancelAnimationFrame( audioAnalysis.preraf );
+							return;
+						}
+						//解码成功后处理音频资源
+						!!buffer && me.audioDeal( buffer );
+					} , function( err ) {
+						console.log( err )
+					});
+				}
+			},
+			//处理音频文件
+			audioDeal : function( buffer ) {
+				var me = this,
+					ac = me.ac,
+					analyser = me.analyser,
+					//控制音频播放，暂停
+					source = ac.createBufferSource();
+					//控制音量大小
+					me.gainNode = ac[ac.createGain ? 'createGain' : 'createGainNode']();
+
+				//连接资源与分析器
+				me.gainNode.connect( ac.destination);
+				me.analyser.connect( me.gainNode );
+				me.analyser.fftSize = me.size * 2;
+
+				//赋值给sourece的buffer属性,并连接
+				source.buffer = buffer;
+				source.connect( analyser );
+
+				//开始播放
+				source[source.start ? 'start' : 'noteOn']( 0 );
+				source.loop = me.param.loop;
+				audioAnalysis.isplay = source;
+
+				//音量控制
+				me.volumeCtrl();
+			},
+			//音量控制器
+			volumeCtrl : function(){
+				var me = this,
+					gainNode = me.gainNode,
+					sound = me.volume.value / me.volume.max
+
+				gainNode.gain.value = sound * sound;
+				me.volume.onchange = function() {
+					var percent = this.value / this.max;
+					gainNode.gain.value = percent * percent;
+				}
+			},
+			//可视化
+			visualizer : function(){
+				var me = this,
+					analyser = me.analyser,
+					arr = new Uint8Array( analyser.frequencyBinCount ),
+					draw = me.param.draw,
+					color = me.randomColor( 0 ),
+					opacity = 1,
+					start = false,
+					Timer = 0,
+					preraf,
+					timeswith = true,
+					size = this.size,
+					gets = [];
+
+				//调用动画
+       			requestAnimationFrame = window.requestAnimationFrame || 
+       									window.webkitRequestAnimationFrame ||
+       									window.mozRequestAnimationFrame;
+
+       			//绘制小帽
+				for( var i = 0 ; i < size ; i++ ) {
+					gets.push({
+						cap : 0
+					})
+				}
+
+       			//利用递归循环绘制canvas动画
+       			setInterval(function(){
+       				Timer > 500 && ( Timer = 0 );
+       				Timer ++ ;
+       			} , 10 );
+
+       			analyser.getByteFrequencyData( arr );
+
+       			function animate() {
+       				//清除动画叠加，递归调用本次动画
+       				window.cancelAnimationFrame( audioAnalysis.preraf )
+       				analyser.getByteFrequencyData( arr );
+       				audioAnalysis.preraf = requestAnimationFrame( animate );
+
+       				//时间控制器
+	       			if( Timer >= 500 ){
+	       				color = me.randomColor( parseInt( Math.random() * ( 10 + 1 ) ) );
+	       			}
+	       			if( Timer >= 465 ){
+	       				start = true;
+	       			}
+	       			//透明度渐变变化
+       				if( !!start ) {
+       					//透明度增减
+	       				!!timeswith ? opacity -= (1/30) : opacity += (1/30);
+
+	       				//控制透明度加减的开关
+	       				( opacity <= 0 ) && ( timeswith = false );
+	       				( opacity >= 1 ) && ( timeswith = true ) && ( start = false );
+
+       				}
+
+       				me.param.draw( arr , color , opacity , gets );
+       			}
+       			window.cancelAnimationFrame( audioAnalysis.preAimate )
+       			var rafId = requestAnimationFrame( animate );
+       			audioAnalysis.preAimate = rafId;
+
+       			//头像转动(要放在柱状图后面绘制，不然会出现卡屏)
+				if( !!audioAnalysis.istranslate ){
+					me.rotateHead();
+					audioAnalysis.istranslate = false;
+				}
+			},
+			//颜色
+			randomColor : function( i ){
+				colorList = [
+					[ '#B993D6' , '#8CA6DB' ],
+					[ '#606c88' , '#3f4c6b' ],
+					[ '#603813' , '#b29f94' ],
+					[ '#999966' , '#666600' ],
+					[ '#DE6262' , '#FFB88C' ],
+					[ '#0ABFBC' , '#FC354C' ],
+					[ '#114357' , '#F29492' ],
+					[ '#870000' , '#190A05' ],
+					[ '#C04848' , '#480048' ],
+					[ '#DC2424' , '#4A569D' ]
+				]
+
+				i >= colorList.length && (i = colorList.length - 1);
+				return colorList[i]
+			},
+			//图像动起来
+			rotateHead : function(){
+				var me = this,
+					canvas = document.getElementById( 'can' ),
+					ctx = canvas.getContext( '2d' ),
+					animate;
+
+					//位移旋转的中心点
+					ctx.translate( canvas.width / 2 , canvas.height / 2 );
+
+					requestAnimationFrame = window.requestAnimationFrame || 
+       								window.webkitRequestAnimationFrame ||
+       								window.mozRequestAnimationFrame;
+
+					//旋转图片
+					function animate(){
+						me.drawing( ctx );
+						ctx.rotate( Math.PI / 180 );
+						requestAnimationFrame( animate );
+					}
+					requestAnimationFrame( animate );
+			},
+			//旋转头像
+			drawing : function( ctx ){
+				// 加载图片
+			    var img = new Image(),
+			    	src = audioAnalysis.src;
+
+			    img.src = src;
+
+			    // 绘制图片
+			    img.onload = function() {
+			        ctx.drawImage( img , -125 , -125 , 250 , 250 );
+			    };
+			    // 切割图片
+			    ctx.beginPath();
+			    ctx.arc( 0 , 0 , 125 , 0 , Math.PI * 2 );
+			    ctx.closePath();
+			    ctx.clip();
+			}
+		}
+
+
+		var music = {
+			istranslate : true,
+			init : function() {
+				var me = this;
+				document.getElementById( 'file' ).onchange = me.deal;
+			},
+			//逻辑处理
+			deal : function() {
+				var me = music,
+					imgList = [ 'img/1.jpg' , 'img/2.jpg' , 'img/3.jpg' , 'img/4.jpg'],
+					i = parseInt( Math.random() * 4 );
+
+				var myaudio = new audioAnalysis({
+					file : document.getElementById( 'file' ).files[0],//音乐文件
+					volume : document.getElementById( 'volume' ),//音量控件dom
+					size : 32,//柱子个数（最少16,得是16*2的n次方，不然报错）
+					loop : true,//是否重复播放
+					draw : me.drawRect//绘制图形方法
+
+				  //amplSound : amplSound //可以做出音响效果
+
+				});
+				//解码播放可视化
+				myaudio.decode();
+				//选择头像的src
+				audioAnalysis.src = imgList[ parseInt( Math.random() * 4 ) ]
+
+			},
+			//柱状图绘制
+			drawRect : function ( arr , color , opacity , gets ) {
+				var me = music,
+					canvas = document.getElementById( 'canvas' ),
+					ctx = canvas.getContext( '2d' ),
+					size = this.size,
+					height = canvas.height,
+					width = canvas.width,
+					line = ctx.createLinearGradient( 0 , 0 , 0 , height );
+
+				ctx.clearRect( 0 , 0 , width , height )
+
+				//渐变颜色
+				line.addColorStop( 0 , color[0] );
+				line.addColorStop( 1 , color[1] );
+				ctx.fillStyle = line;
+				ctx.globalAlpha = opacity;
+
+				var w = width / size
+					capH = w * 0.5;
+				for( var i = 0 ; i < size ; i++ ){
+					var o = gets[i],
+						h = arr[i] / 256 * height;
+
+					// ctx.fillRect( w * i , height - h , w * 0.6 , h );
+					ctx.roundRect( w * i , height - h , w * 0.6 , h , 5).fill();
+					//绘制小帽
+					ctx.roundRect( w * i , height - ( o.cap  + capH ) , w * 0.6 , capH , 2 ).fill();
+					o.cap -= 0.5 ;
+					o.cap < 0 && ( o.cap = 0 );
+					if( h > 0 && o.cap < ( h + 8 ) ) {
+						o.cap = h + 8 > ( height - capH ) ? ( height - capH ) : ( h + 30 );
+					}
+
+				}
+			}
+			
+		}
+		//初始化
+		music.init()
+	</script>
+</body>
+</html>

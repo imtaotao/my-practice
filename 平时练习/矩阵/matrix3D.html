@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+	<style>
+		body{
+			transform-style : preserve-3d;
+			perspective : 1000px;
+		}
+		#dd{
+			width: 150px;
+			height: 150px;
+			background: rgba(0,0,0,.5);
+			border-radius:5px;
+			position: absolute;
+			/*transform: rotate(60deg );*/
+		}
+	</style>
+</head>
+<body>
+	<div id="dd"></div>
+	<script>
+		// 矩阵切割成数组（工具函数）
+		function mtxSplit( elem ) {
+			var matrix = getComputedStyle( elem ).transform;
+			matrix === 'none' && ( matrix = 'matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)' );
+
+			return matrix.replace('matrix3d(', '' ).replace(')', '' ).split(',');
+		}
+
+		// 返回拼接好的maxtrix（工具函数）
+		function mtxSplice( arr ) {
+			var newMatrix = 'matrix3d(';
+
+			arr.forEach(function( val, i ) {
+				newMatrix += i != arr.length - 1 ? val + ',' : val;	
+			});
+
+			return newMatrix += ')'
+		}
+
+		// 3d旋转
+		function rotate3d( elem, x, y, z, deg ) {
+			var matrix = mtxSplit( elem ),
+				agl = Math.PI * deg / 180,
+				numSqrt = Math.sqrt( x*x + y*y + z*z ),
+				ux = x / numSqrt,
+				uy = y / numSqrt,
+				uz = z / numSqrt;
+
+			// 计算
+			var r0 = ux * ux * ( 1 - Math.cos( agl ) ) + Math.cos( agl ),
+				r1 = ux * uy * ( 1 - Math.cos( agl ) ) + uz * Math.sin( agl ),
+				r2 = ux * uz * ( 1 - Math.cos( agl ) ) - uy * Math.sin( agl ),
+				r4 = ux * uy * ( 1 - Math.cos( agl ) ) - uz * Math.sin( agl ),
+				r5 = uy * uy * ( 1 - Math.cos( agl ) ) + Math.cos( agl ),
+				r6 = uz * uy * ( 1 - Math.cos( agl ) ) + ux * Math.sin( agl ),
+				r8 = ux * uz * ( 1 - Math.cos( agl ) ) + uy * Math.sin( agl ),
+				r9 = uy * uz * ( 1 - Math.cos( agl ) ) - ux * Math.sin( agl ),
+				r10 = uz * uz * ( 1 - Math.cos( agl ) ) + Math.cos( agl );
+
+			var d0 = matrix[0] * r0 + matrix[1] * r1 + matrix[2] * r2,
+				d1 = matrix[1] * r0 + matrix[5] * r1 + matrix[9] * r2,
+				d2 = matrix[2] * r0 + matrix[6] * r1 + matrix[10] * r2,
+				d3 = matrix[3] * r0 + matrix[7] * r1 + matrix[11] * r2,
+				d4 = matrix[0] * r4 + matrix[4] * r5 + matrix[8] * r6,
+				d5 = matrix[1] * r4 + matrix[5] * r5 + matrix[9] * r6,
+				d6 = matrix[2] * r4 + matrix[6] * r5 + matrix[10] * r6,
+				d7 = matrix[3] * r4 + matrix[7] * r5 + matrix[11] * r6,
+				d8 = matrix[0] * r8 + matrix[4] * r9 + matrix[8] * r10,
+				d9 = matrix[1] * r8 + matrix[5] * r9 + matrix[9] * r10,
+				d10 = matrix[2] * r8 + matrix[6] * r9 + matrix[10] * r10,
+				d11 = matrix[3] * r8 + matrix[7] * r9 + matrix[11] * r10,
+				arr = [d0, d1, d2, d3, d4, d5, d6, d7, d8, d9, d10, d11, matrix[12], matrix[13], matrix[14], matrix[15]];
+
+			return mtxSplice( arr )
+
+		}
+
+
+		// translate3d
+		function translate3d( elem, x, y, z ) {
+			var  matrix = mtxSplit( elem );
+			// 计算
+			var c12 = x * matrix[0] + y * matrix[4] + z * matrix[8] + Number( matrix[12] ),
+				c13 = x * matrix[1] + y * matrix[5] + z * matrix[9] + Number( matrix[13] ),
+				c14 = x * matrix[2] + y * matrix[6] + z * matrix[10] + Number( matrix[14] ),
+				c15 = x * matrix[3] + y * matrix[7] + z * matrix[11] + Number( matrix[15] ),
+				arr = [matrix[0], matrix[1], matrix[2], matrix[3], matrix[4], matrix[5], matrix[6], matrix[7], matrix[8], matrix[9], matrix[10], matrix[11], c12, c13, c14, c15];
+
+			return mtxSplice( arr );
+
+		}
+
+		// 缩放 scale3d
+		function scale3d( elem, x, y, z ) {
+			var matrix = mtxSplit( elem );
+			// 计算
+			var s0 = matrix[0] * x, s4 = matrix[4] * y, s8 = matrix[8] * z,
+				s1 = matrix[1] * x, s5 = matrix[5] * y, s9 = matrix[9] * z,
+				s2 = matrix[2] * x,	s6 = matrix[6] * y, s10 = matrix[10] * z,
+				s3 = matrix[3] * x, s7 = matrix[7] * y, s11 = matrix[11] * z,
+				arr = [s0, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, matrix[12], matrix[13], matrix[14], matrix[15]];
+
+			return mtxSplice( arr );
+		}
+
+		// 测试代码
+		// ==============================================================================================
+		// console.log(getComputedStyle( dd ).transform)
+		// 以下代码相当于在css中  transform:translate3d(10px, 30px, 100px) rotate3d(1, 1, 1, 60deg) scale3d(2, 1, 0.6)
+		// dd.style.transform = translate3d(dd, 10, 30, 100 );
+		var r = rotate3d( dd, 0, 0, 1, 60 )
+		dd.style.transform = r;
+		// dd.style.transform = scale3d( dd, 2, 1, 0.6 );
+		console.log(r)
+	</script>
+</body>
+</html>

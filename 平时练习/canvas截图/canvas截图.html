@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+	<style>
+		div {
+			width: 100px;
+			height: 100px;
+		}
+		.dd {
+			background: #6e1e1e;
+		}
+		.aa {
+			background: #354ce1;
+		}
+		#save {
+			cursor: pointer;
+		}
+	</style>
+</head>
+<body id="body">
+	<div class="dd" id="dd"></div>
+	<div class="aa"></div>
+	<a id="node">保存</a>
+	<script src='html2canvas.js'></script>
+	<script>
+		function SavePicture (el, opthion) {
+			return new SavePicture.prototype.init(el, opthion)
+		}
+
+		SavePicture.prototype = {
+			constructor: SavePicture,
+
+			// 初始化
+			init: function (el, opthion) {
+				if (!el) return
+
+				this.el		 = el
+				this.opthion = opthion || {}
+			},
+
+			cut: function (callback) {
+				var self = this
+				var el   = this.el
+				
+				this.opthion.onrendered = function(canvas) {
+					// canvas是最终渲染的<canvas>元素
+				    var dataURL  = canvas.toDataURL("image/png")
+				    self.dataURL = dataURL
+				    callback && callback.call( self, dataURL)
+				}
+				html2canvas(el, this.opthion)
+			},
+
+			download: function (downEl, fileName) {
+				if (!downEl) return
+				var url  = this.dataURL
+				var name = fileName ? fileName + '.png'
+									: ''
+				downEl.href		 = url
+				downEl.download  = name
+			}
+		}
+		SavePicture.prototype.init.prototype = SavePicture.prototype
+
+
+		node.onclick = function () {
+			var self = this
+			SavePicture(dd).cut(function (url) {
+				this.download(self)
+			})
+		}
+ 	</script>
+</body>
+</html>

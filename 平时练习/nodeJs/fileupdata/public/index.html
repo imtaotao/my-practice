@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>test</title>
+</head>
+<body>
+	<input type="file" id="file">
+	<button id="btn">上传</button>
+
+	<script>
+
+class cavailer {
+	constructor( option ) {
+		if ( !option ) { console.error( '配置项不能为空' ); return };
+		this.url = option.url;										// 路径
+		this.data = option.data;									// 需要发送的数据	
+		this.method = ( option.method || 'GET' ).toUpperCase()		// 方法
+		this.upload = option.upload									// 是否是文件上传
+		this.dataType = option.dataType								// 返回的数据格式
+		this.FD = null												// FormData 格式传送的数据
+		this.fileContainer = {}										// 文件容器
+		this.progress = function() {}
+
+		// this.isFormData = 'FormData' in window						// 判断是否支持 FormData 对象
+		this.isFormData = false
+		this.addTypeOf();
+	}
+
+	// 添加文件
+	addFile( file ) {
+		if ( !file ) { console.error('文件不能为空'); return this }
+		const fileName = this.fileName()
+		// 如果是新版本浏览器
+		if ( this.isFormData ) {
+			const FD = this.FD = new FormData;
+			if ( this.isArr( file ) ) {
+				file.forEach( ( val, i ) => {
+					const fileName = this.fileName()
+					FD.append( fileName, val );
+					val.fileName = fileName;
+				})
+				return this
+			}
+
+			FD.append( fileName, file );
+			file.fileName = fileName;
+			return this
+		}
+
+		// 否则就按照普通的来进行
+		if ( this.isArr( file ) ) {
+			file.forEach( val => {
+				const fileName = this.fileName()
+				this.fileContainer[fileName] = val
+				val.fileName = fileName
+			});
+			return this
+		}
+		this.fileContainer[fileName] = file;
+		file.fileName = fileName
+		return this
+	}
+
+	// 删除文件
+	deleteFile( file ) {
+		if ( !file ) { console.error( '文件不能为空' ); return};
+		if ( this.FD ) {
+			this.FD.delete(file.fileName);
+			return this
+		}
+
+		delete this.fileContainer[file.fileName]
+		return this
+	}
+
+	ajax( newData, success, error ) {
+		const self = this;
+		if ( self.upload && !self.FD ) return self.uploadFile( success, error )
+
+		return self.promise(( resolve, reject ) => {
+			// 普通的ajax
+			let xhr 		= new XMLHttpRequest,
+				dataType    = self.dataType,
+				url 		= self.url,
+				data 		= newData || self.data,
+				method 		= self.method;
+
+			// 如果是文件上传需要改一些参数
+			if ( self.upload && self.FD ) {
+				data = self.FD
+				method = 'POST'
+			}
+
+			if ( success || error ) {
+				xhr.onload = ({ target }) => success.call( xhr, target );
+				xhr.onerror = ({ target }) => error.call( xhr, target );
+			} else {
+				xhr.onload = ({ target }) => resolve.call( xhr, target );
+				xhr.onerror = ({ target }) => reject.call( xhr, target );
+			}
+			
+			// 上传中
+			if ( xhr.upload ) {
+				xhr.upload.addEventListener( "progress", function( e ) {
+					self.progress( file, e.loaded, e.total );
+				}, false );
+			}
+
+			xhr.open( method, url, true );
+			if( !self.FD && method === 'POST') { 
+				xhr.setRequestHeader( "Content-type" , "application/x-www-form-urlencoded" )
+			}
+			dataType && ( xhr.responseType = dataType )
+			xhr.send( data )
+		})
+	}
+
+	uploadFile( success, error ) {
+		const self = this,
+			  dataAll = self.fileContainer,		// 数据
+			  promiseAll = []					// promiseAll
+
+		for ( let key in dataAll ) {
+			promiseAll.push( self.promise(( resolve, reject ) => {
+				const xhr = new XMLHttpRequest,
+				  	  url = self.url,
+			  	  	  data = dataAll[key];
+
+				// 回调
+				if ( success || error ) {
+					xhr.onload = ({ target }) => success.call( xhr, target );
+					xhr.onerror = ({ target }) => error.call( xhr, target );
+				} else {
+					xhr.onload = ({ target }) => resolve.call( xhr, target );
+					xhr.onerror = ({ target }) => reject.call( xhr, target );
+				}
+
+				// 上传中
+				if ( xhr.upload ) {
+					xhr.upload.addEventListener( "progress", function( e ) {
+						self.progress( file, e.loaded, e.total );
+					}, false );
+				}
+
+				xhr.open( 'POST', url, true )
+				xhr.send( data )
+			}))
+		}
+		
+		return Promise.all( promiseAll )
+	}
+
+	// promise
+	promise( callback ) {
+		return new Promise( ( resolve, reject ) => {
+			callback( resolve, reject );
+		})
+	}
+
+	// 添加类型判断方法
+	addTypeOf() {
+		['Array', 'Object', 'Function', 'Number'].forEach( ( type, i ) => {
+			this[`is${type.slice(0, 3)}`] = val => {
+				return Object.prototype.toString.call( val ) === `[object ${type}]`
+			} 
+		});
+	}
+
+	// 生成一个随机的文件名
+	fileName() {
+		return 'file_' + Date.now() + this.random( 1000000 ).toString( this.random( 2, 36 ) );
+	}
+
+	random( min, max ) {
+		return max ? parseInt( Math.random() * ( max - min + 1 ) + min )
+				   : parseInt( Math.random() * ( min + 1 ) )
+	}
+};
+
+	const up = new cavailer({
+		url: '/test',
+		data: '121',
+		upload: true
+	});
+
+	file.onchange = function( ) {
+			const data = this.files[0];
+			window.fi = data
+			up.addFile( data );
+		}
+
+		btn.onclick = function( e ) {
+			// const formData = new FormData();
+			
+			// console.log( data )
+			// formData.append( 'testFile', data );
+
+			// const xhr = new XMLHttpRequest;
+
+			// xhr.open( 'POST', '/test' );
+			// xhr.setRequestHeader( "Content-type" , "application/x-www-form-urlencoded" );
+			// xhr.onprogress = function ( e ) {
+			// 	console.log( e );
+				
+			// };
+			// xhr.send( formData )
+
+			up.ajax().then(( res ) => {
+				console.log( res )
+			})
+		};
+
+	</script>
+</body>
+</html>
