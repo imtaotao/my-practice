@@ -1,0 +1,23 @@
+<div data-role=page id="bhtml">
+	<p id="p"></p>
+	<a href="index.html" class="jump-a">index</a>
+	<a href="a.html" class="jump-a" id="a">a</a>
+	<a href="c.html" class="jump-a">c</a>
+	<script>
+		onEvent.on( 'renderafter', function ( e ) {
+			var p = Tools.$( 'p' )
+			p.innerHTML = e.data;
+
+			p.animate({
+				color : ['#3cc0fc', .8],
+				translate3d: [100, 100, 0],
+				fontSize : 20
+			}, 1000 )
+
+			Tools.$( '#a' ).animate({
+				rotateY : 360
+			},1000)
+		})
+
+	</script>
+</div>

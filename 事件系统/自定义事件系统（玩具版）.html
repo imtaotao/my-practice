@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>玩具版事件系统</title>
+</head>
+<style>
+	#dd{
+		width: 100px;
+		height: 30px;
+		line-height: 30px;
+		text-align: center;
+		border-radius: 5px;
+		cursor: pointer;
+		padding: 5px;
+		background: #000;
+		color: #fff;
+	}
+</style>
+<body>
+	<div id="dd">点击</div>
+	<script>
+		const myEvent = {
+			// 绑定事件
+			on : function( el , type , fun ) {
+				//定义一个保存元素事件的对象
+				!el.events && ( el.events = {} );
+
+				// 定义一个数组保存每一个事件的
+				let handerArr = el.events[type];
+
+				if( !handerArr ) {
+					handerArr = el.events[type] = [];
+					// 把原先绑定的事件转移到数组里
+					!!el["on" + type] && ( handerArr[0] = el["on" + type] );
+				}  
+
+				// 不需要同一个回调函数重复的绑定
+				for( let i = 0 , arr = el.events[type] ; i < arr.length ; i++ ) {
+					// 如果和传入的fun全等，就不需要再添加了
+					if( arr[i] === fun ) return 
+				}
+
+				handerArr.push( fun );
+				el["on" + type] = this.handerEvent
+			},
+			// 删除事件回调
+			remove : function( el , type , fun ) {
+				if( !!el.events && !!el.events[type] ) {
+					// 指定了回调函数
+					if( !!fun ) {
+						// 循环当前事件类型数组,查找坐标
+						for( let i = 0 , arr =  el.events[type]; i < arr.length ; i++ ) {
+							// 如果和传入的fun全等，就删除当前位置的回调函数
+							if( arr[i] === fun ) {
+								arr.splice( i , 1 );
+								return
+							} 
+						}
+					}
+
+					// 没有指定回调函数
+					if( !fun) {
+						el.events[type] =  null;
+					}
+				};
+			},
+
+			// 自定义触发
+			fire : function( el , type , fun ) {
+				if( !!el.events && !!el.events[type] ) {
+					// 指定了回调函数
+					if( !!fun ) {
+						// 循环当前事件类型数组
+						for( let i = 0 , arr = el.events[type] ; i < arr.length ; i++ ) {
+							// 如果和传入的fun全等，就删除当前位置的回调函数
+							if( arr[i] === fun ) {
+								// 做处理
+								let event = new Event( el );
+								event = this.fixEvent( event );//换成自定义的事件对象
+								event.currentTarget = this;
+								fun.call( el , event );
+							}
+						}
+					}
+
+					// 没有指定回调函数
+					if( !fun ) {
+						let event = new Event( el );
+						event = this.fixEvent( event );//换成自定义的事件对象
+						event.target = el;
+						event.type = type;//修正type
+						this.handerEvent.bind( el )( event );
+					}
+				};
+			},
+
+			// 总的回调函数
+			handerEvent : function( event ) {
+				// 保存当前上下文
+				let me = myEvent;
+
+				event = event || window.event;
+				event = me.fixEvent( event );
+				event.currentTarget = this;
+
+				let returnValue = true,
+					hander = this.events[event.type];
+
+				//遍历当前事件类型下的所有回调函数，依次调用他们
+				for( let i = 0 , n = hander.length ; i < n ; i++ ) {
+					hander[i].bind( this )( event ) === false && ( returnValue = false );
+				}
+
+				// 该Event.returnValue属性指示是否已经阻止或禁止此事件的默认操作。
+				// 它true默认设置为允许默认动作发生。设置此属性以false防止默认操作。
+				// 正在被弃用，所以这里这样写只是为了兼容以前的版本
+				return returnValue;
+			},
+			// 修正event（属性在这个方法里面修正和添加）
+			fixEvent : function( event ) {
+				// 可以自定义个属性用来判断是修改过的event对象还是原生的event对象
+				if( !!event["myExtend"] ) {
+					return event
+				};
+
+				// 保存源event对象
+				let originEvent = event;
+
+				// 添加方法
+				event = this.eventObj( originEvent );
+
+				// 深拷贝，因为源event对象属性不能改变
+				for( let key in originEvent ) {
+					!this.isFun( originEvent[key] ) && ( event[key] = originEvent[key] );
+				};
+
+				if ( !event.target ) {
+            		event.target = event.srcElement || document;
+        		}
+
+        		// 如果是文本节点，就置入其父元素
+        		if ( event.target.nodeType === 3 ) {
+          			event.target = event.target.parentNode;
+        		}
+				return event
+			},
+			// 修正event（event方法在这个方法里面修正和添加）
+			eventObj : function( event ) {
+				let me = this;
+				// 可以在这里添加任意合法的方法，也可以做兼容处理，哈哈
+				class Event{
+					constructor( event ) {
+						if( !!event && !!event.type ) {
+							this.originEvent = event;//保存原始对象
+							this.type = event.type;
+
+						}else{
+							this.type = src;
+						}
+
+						this.timeStamp = new Date().valueOf();
+				        this[ "myExtend" ] = true;
+					}
+
+					toString() {
+						return me.eventMap()[this.type] || "[object Event]";
+					}
+
+					// 阻止默认行为
+					preventDefault() {
+						// 因为isDefaultPrevented是个方法不是属性
+						this.isDefaultPrevented = me.returnTrue;
+
+						let e = this.originEvent;
+						if( !e ) return
+
+						// 如果源事件对象存在preventDefault方法，就调用他（标准浏览器）
+						!!e.preventDefault && e.preventDefault();
+
+						e.returnValue = false;// IE
+					}
+
+					// 取消冒泡
+					stopPropagation() {
+						this.isPropagationStopped = me.returnTrue;
+
+						let e = this.originEvent;
+						if( !e ) return
+
+						!!e.stopPropagation && e.stopPropagation();// 标准浏览器
+
+						e.cancelBubble = true;// IE
+					}
+
+					//阻止冒泡且阻止后续函数执行
+					stopImmediatePropagation() {
+			        	this.isImmediatePropagationStopped = returnTrue;
+			        	this.stopPropagation();
+			        }
+
+			        isDefaultPrevented() { return false }
+					isPropagationStopped() { return false }
+					isImmediatePropagationStopped() { return false }
+				}
+				
+				return new Event( event );
+			},
+			returnTrue : function() {
+				return true;
+			},
+			returnFalse : function() {
+				return false;
+			},
+			isFun : function( val ) {
+				return Object.prototype.toString.call( val ) === "[object Function]";
+			},
+
+			// 下面三个方法是为了实现toString
+			eventMap : function() {
+				let MouseEvent = ["click", "dblclick", "mousedown","mousemove", "mouseout", "mouseover", "mouseup"],
+					Event = ["abort", "blur", "change", "error", "focus", "load", "reset", "resize", "scroll", "select", "submit", "unload"],
+					KeyboardEvent = ["keyup", "keydown", "keypress"];
+
+				let MouseEventObj = this.oneObject( MouseEvent , "[object MouseEvent]" ),
+					EventObj = this.oneObject( Event , "[object Event]" ),
+					KeyboardEventObj = this.oneObject( KeyboardEvent , "[object KeyboardEvent]" );
+
+				return this.merge( {} , MouseEventObj , EventObj , KeyboardEventObj );
+			},
+
+			// 变成一个对象
+			oneObject : function( arr , val ) {
+				let result = {},
+		        	value = !val ? "undefined" : val;
+
+		    	for( let i = 0 ; i < arr.length ; i++ ) {
+		    		result[arr[i]] = value;
+		    	}
+		    	return result;
+		   	},
+		   	// 合并对象
+		   	merge : function( result , source ) {
+		   		if ( arguments.length === 1 ) {
+		        	source = result;
+		        	result = dom;
+		        }
+
+		        // 参数个数为2的时候是执行的这里的代码
+		        if ( result && source ){
+		        	for( let key in source ) {
+		            	source.hasOwnProperty( key ) && ( result[key] = source[key] );
+		        	}
+		        }
+
+		        // 大于2的时候就这些这里的
+		        if( arguments.length > 2 ) {
+		        	// 从下标为2开始截取，一共才4个
+		        	let others = [].slice.call( arguments , 2 );
+
+		        	for( let i = 0 ; i < others.length ; i++ ) {
+		        		// 递归合并
+		            	result = arguments.callee( result , others[i] );
+		        	}
+		        }
+		        return result;
+		   	}
+		};
+
+
+
+		// 以下为测试代码
+		// ==================================================================================
+		let dd = document.getElementById( 'dd' );
+
+		let click = function( e ) {
+			console.log( this )
+		}
+		let other = function( e ) { 
+			e.preventDefault()
+			console.log( this , e )
+		}
+
+		myEvent.on( dd , 'click' , click );
+		myEvent.on( dd , 'click' , other );
+		myEvent.on( dd , 'click' , click );
+
+		// myEvent.remove( dd , 'click' );
+		myEvent.fire( dd , 'click')
+	</script>
+</body>
+</html>

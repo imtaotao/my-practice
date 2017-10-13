@@ -1,0 +1,163 @@
+a, img {
+    -webkit-touch-callout: none;
+}
+body {
+	margin: 0;
+	-webkit-user-select: none;
+	user-select: none;
+	-ms-touch-action: none;
+}
+
+/* 页面结构 */
+html, body{
+	width: 100%;
+	overflow-x: hidden;
+}
+/*页面布局*/
+[data-view=view] {
+	width: 200%;
+	overflow-x: hidden;
+}
+[data-role=page] {
+	width: 50%;
+	margin: 0;
+	transform: translateX(0%);
+	overflow-x: hidden;
+}
+[data-role=page]:first-child{
+	float: left !important;	
+}
+[data-role=page]:last-child{
+	float: right;	
+}
+.fixePostion{
+	transform: translateX(-100%);
+}
+
+
+.mask {
+	height: 100%; width: 100%;
+	background-color: rgba(255,255,255,.35);
+	position: absolute; left: 0; top: 0;
+	z-index: 9;
+}
+.loading {
+    width: 3px; height:3px;
+    border-radius: 100%;
+    box-shadow: 0 -10px 0 1px currentColor,           /* top, 1px expand */
+                10px 0px currentColor,                /* right */
+                0 10px currentColor,                  /* bottom */
+                -10px 0 currentColor,                 /* left */
+
+                -7px -7px 0 .5px currentColor,        /* left-top, 0.5px expand */
+                7px -7px 0 1.5px currentColor,        /* right-top, 1.5px expand */
+                7px 7px currentColor,                 /* right-bottom */
+                -7px 7px currentColor;                /* left-bottom */
+	-webkit-animation: spin 1s steps(8) infinite;
+	animation: spin 1s steps(8) infinite;
+	/*加载图标位于中心*/
+	position: absolute;
+	top: 0; right: 0; bottom: 0; left: 0;
+	margin: auto;
+}
+/* 菊花装载效果 */
+@-webkit-keyframes spin {
+     0% { -webkit-transform: rotate(0deg); }
+   100% { -webkit-transform: rotate(360deg); }
+}
+@keyframes spin {
+     0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/*页面slide过渡效果*/
+.slide.out, .slide.in {
+	-webkit-animation-timing-function: ease-out;
+	-webkit-animation-duration: 225ms;
+	animation-timing-function: ease-out;
+	animation-duration: 225ms;
+}
+.slide.in {
+	-webkit-animation-name: slideinfromright;
+	animation-name: slideinfromright;
+}
+.slide.out {
+	-webkit-animation-name: slideouttoleft;
+	animation-name: slideouttoleft;
+}
+.slide.reverse.out {
+	-webkit-animation-name: slideouttoright;
+	animation-name: slideouttoright;
+}
+.slide.reverse.in {
+	-webkit-animation-name: slideinfromleft;
+	animation-name: slideinfromleft;
+}
+
+/* 关键帧从侧面滑入 */
+@-webkit-keyframes slideinfromright {
+    from { -webkit-transform: translate3d(0,0,0); }
+    to { -webkit-transform: translate3d(-100%,0,0); }
+}
+@keyframes slideinfromright {
+    from { transform: translateX(0); }
+    to { transform: translateX(-100%); }
+}
+@-webkit-keyframes slideinfromleft {
+    from { -webkit-transform: translate3d(0,0,0); }
+    to { -webkit-transform: translate3d(100%,0,0); }
+}
+@keyframes slideinfromleft {
+    from { transform: translateX(0); }
+    to { transform: translateX(100%); }
+}
+/* 关键帧滑出来 */
+@-webkit-keyframes slideouttoleft {
+    from { -webkit-transform: translate3d(0,0,0); }
+    to { -webkit-transform: translate3d(-100%,0,0); }
+}
+@keyframes slideouttoleft {
+    from { transform: translateX(0); }
+    to { transform: translateX(-100%); }
+}
+@-webkit-keyframes slideouttoright {
+    from { -webkit-transform: translate3d(0,0,0); }
+    to { -webkit-transform: translate3d(100%,0,0); }
+}
+@keyframes slideouttoright {
+    from { transform: translateX(0); }
+    to { transform: translateX(100%); }
+}
+
+
+/*页面淡入淡出效果*/
+.fade.out, .fade.in {
+	-webkit-animation-timing-function: ease-out;
+	-webkit-animation-duration: 225ms;
+	animation-timing-function: ease-out;
+	animation-duration: 225ms;
+}
+.fade.in {
+	-webkit-animation-name: fadeIn;
+	animation-name: fadeIn;
+}
+.fade.out{
+	-webkit-animation-name: fadeOut;
+	animation-name: fadeOut;
+}
+@-webkit-keyframes fadeIn {
+    from { opacity: 0;transform:translate3d(-100%,0,-60px)}
+    to { opacity: 1;transform:translate3d(-100%,0,-60px)}
+}
+@keyframes fadeIn {
+    from{ opacity: 0;transform:translate3d(-100%,0,0)}
+    to { opacity: 1; transform:translate3d(-100%,0,0)}
+}
+@-webkit-keyframes fadeOut {
+    from { opacity: 1; transform:translate3d(0,0,0);}
+    to { opacity: 0; transform:translate3d(-30px,-30px,-60px);}
+}
+@keyframes fadeOut {
+    from { opacity: 1; transform:translate3d(0,0,0)}
+    to { opacity: 0; transform:translate3d(-30px,-30px,-60px);}
+}

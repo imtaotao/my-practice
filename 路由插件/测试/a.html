@@ -1,0 +1,79 @@
+<div data-role=page id="ahtml">
+	<div id="container">
+		<div id="aa"></div>
+		<div id="bb"></div>
+		<div id="cc"></div>
+	</div>
+	<a href="index.html" class="jump-a">index</a>
+	<a href="b.html" class="jump-a" data-param="来自A页面的数据">b</a>
+	<a data-rel=return class="jump-a">返回</a>
+	<script>
+		onEvent.on( 'renderafter', function() {
+			HTMLElement.prototype.move = function( prop, time, fun ) {
+			let el = this;
+
+			// 添加css过渡属性
+	        el.style.webkitTransitionDuration = time + 'ms';
+	        !!prop.delay && ( el.style.transitionDelay = prop.delay + 'ms' );
+
+	        // 异步操作中改变属性状态
+	        setTimeout(function() {
+	        	for( var k in prop ) {
+	        		el.style[k] = prop[k];
+	        	}
+	        });
+
+	        // 结束后css过渡属性恢复初始状态，并调用回调
+	     	el.addEventListener( 'webkitTransitionEnd', function() {
+	         	el.style.webkitTransitionDelay = '0s';
+	         	el.style.webkitTransitionDuration = '0s';
+
+	         	// 多个属性过渡结束，但只调用一次回调
+	         	if( !!fun && !fun.open ) {
+	         		fun.call( el );
+	         		fun.open = true;
+	         	}
+	        });
+
+	        return el;
+		};
+	})
+		
+	</script>
+
+	<!-- 测试 -->
+	<script>
+	onEvent.on( 'renderafter', function() {
+		var init = function() {
+			container.innerHTML = '<div id="aa"></div>'+
+								'<div id="bb"></div>'+
+								'<div id="cc"></div>'
+		};
+
+		window.animate = function() {
+			aa.move({
+				delay : 500,
+				transform : 'translate3d(150px,5px,-200px)'
+			}, 1000 )
+
+			bb.move({
+				delay : 500,
+				transform :  'translate3d(0,5px,-200px)'
+			}, 1000 )
+
+			cc.move({
+				delay : 500,
+				transform :  'translate3d(64px,0,0)'
+			}, 1000 ,function() {
+				init()
+				animate();
+			})
+		}
+		animate()
+	})
+
+	onEvent.on( 'leave', function () {
+		console.log( 'a页面离开了，可以在这解绑事件，清除定时器' )
+	})
+	</script>
+</div>

@@ -1,0 +1,137 @@
+/*没办法才用全选匹配*/
+*{
+	margin:0;
+	padding:0;
+	box-sizing:border-box;
+    font-family: "Arial","Microsoft YaHei","黑体","宋体",sans-serif;
+}
+body{
+	color: #333;
+    font-family: Tahoma,'Microsoft YaHei',SimSun;
+    font-size: 14px
+}
+input {border:none;}
+
+.lf   {float:left;}
+
+.rt  {float:right;}
+
+.clear  {clear:both;}
+
+.white {
+    color: #fff;
+}
+.blue{
+    color: #2d99ec;
+}
+.red{
+    color: #c40000;
+}
+.gray{
+    color: #9faab3;
+}
+.lgray{
+    color: #999;
+}
+.green{
+    color : #280;
+}
+ul,ol,li,p,h1,h2,h3,h4,h5,h6,dl,dt,dd {
+    border:none;
+    list-style:none;
+}
+li{
+	cursor: pointer;
+}
+a{
+    color:#666;
+    text-decoration:none;
+    cursor: pointer;
+}
+a:hover{
+    text-decoration:none;
+    color:#0186ed;
+}
+.clearRight{
+	border-right:1px solid transform;
+}
+.clearLeft{
+	border-left:1px solid transform;
+}
+.show{
+    display: block !important;
+}
+.hide{
+    display: none !important;
+}
+
+
+/*index*/
+.list-view li{
+	background-color: rgba(0,0,0,.5);
+	width: 90%;
+	height: 40px;
+	border-radius: 5px;
+	margin:10px auto;
+	text-align: center;
+}
+.list-view li a{
+	display: inline-block;
+	width: 100%;
+	color: #fff;
+	line-height: 40px;
+	font-size: 20px;
+	cursor: pointer;
+}
+
+/*a.html*/
+#container, #container div{
+	width: 100px;
+	height: 200px;
+	background: rgba(0,0,0,.5);
+	border-radius: 10px;
+}
+#container{
+	transform-style : preserve-3d;
+	perspective : 1000px;
+	background: rgba(1,1,1,0);
+	position: relative;
+}
+#aa{
+	transform: translate3d(0,5px,-200px);
+	position: absolute;
+}
+#bb{
+	transform: translate3d(64px,0,0);
+	position: absolute;
+}
+#cc{
+	transform: translate3d(150px,5px,-200px);
+	position: absolute;
+}
+.jump-a{
+	display: block;
+	width: 50px;
+	height: 30px;
+	border-radius: 5px;
+	background:rgba(0,0,0,.5);
+	margin-left: 30%;
+	margin-top: 50px;
+	line-height: 30px;
+	color: #fff;
+	text-align: center;
+}
+#indexhtml{
+	background-color : #ff4e41;
+}
+#bhtml{
+	transform-style : preserve-3d;
+	perspective : 500px;
+	background-color : #ffdb71;
+}
+#ahtml{
+	background-color : #ffadee;
+}
+#chtml{
+	background-color : #8badbe;
+}

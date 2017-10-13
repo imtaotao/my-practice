@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>事件+aop</title>
+	<style>
+		#dd{
+			width: 100px;
+			height: 30px;
+			background: #333;
+			color: #fff;
+			font-weight: 700;
+			border-radius: 5px;
+			text-align: center;
+			line-height: 30px;
+			cursor: pointer;
+		}
+	</style>
+</head>
+<body>
+	<div id="dd">点击</div>
+	<script>
+		var div = document.getElementById( 'dd' );
+
+		//注册
+		function addEvent( el , type , fn , capture ) {
+			var defind = type.indexOf( 'DE' );
+
+			var origin = type;
+			var type = "on" + type;
+
+			//得到事件的回调（本质是节点的属性）
+			var old = el[type];
+
+			//如果元素上没有这个事件
+			if ( typeof el[type] != 'function' && defind < 0 ) {
+				//则绑定为dom0级事件
+			    el[type] = fn
+			}else {
+				if( defind > -1 ) {
+					el.addEventListener( origin , fn , capture );
+
+				}else {
+				    //如果原先有dom事件存在的话
+				    el[type] = function() {
+				    	//调用所有的回调函数
+				        old();
+				        fn();
+				    }
+			    }
+			}
+		}
+
+		//触发
+		function fire( el , type ) {
+			var event = new Event( type );
+			el.dispatchEvent( event );
+		}
+
+		// aop
+		function Aop( method, beforeFunc, afterFunc ) {
+		    return function() {
+		    	// 深拷贝且数组化参数
+		    	var parms = [].slice.call( arguments );
+
+		    	// 1、在目标方法调用之前的操作（添加干预）
+		    	!!beforeFunc && beforeFunc.apply( this, parms );
+
+		    	//目标方法的调用
+		        var res = method.apply( this, arguments );
+
+		        // 2、在目标方法调用之后的操作（添加干预）
+		        !!afterFunc && afterFunc.apply( this, parms );
+
+		        //返回这个函数的结果，就算是返回的undefined，也需要，因为我们并不知道目标函数有没有返回值
+		        return res;   
+		    };
+		}
+
+
+		// ===============================================================================
+		// 测试
+
+		function deaa( e ) {
+			this.style.color = '#fff';
+
+			setTimeout(function(){
+				this.style.color = '#e4393c';
+			}.bind( this ) , 1000 )
+		}
+
+		//触发自定义事件
+		deaa = Aop( deaa , function( pos ) {
+			fire( div , 'DEaa' );
+		})
+
+		addEvent( div , 'click' , deaa )
+
+		addEvent( div , 'DEaa' , function( e ) {
+			console.log( '我是自定义事件触发的' + e.type )
+		} )
+
+	</script>
+</body>
+</html>

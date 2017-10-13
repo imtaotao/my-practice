@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"> 
+	<title>模板微信</title>
+	<link rel="stylesheet" href="lib/route.css">
+	<link rel="stylesheet" href="css/myStyle.css">
+	<script src="lib/route-1.1.js"></script>
+</head>
+<body>
+	<div data-view=view data-transition="slide">
+		<div data-role=page data-page=index id="indexhtml">
+			<ul class="list-view">
+				<li>
+					<p>
+						<a href="a.html">进入页面a</a>
+					</p>
+				</li>
+				<li>
+					<p>
+						<a href="b.html" data-param='B，这是来自index的数据'>进入页面b</a>
+					</p>
+				</li>
+				<li>
+					<p>
+						<a href="c.html" data-param='C，这是来自index的数据'>进入页面c</a>
+					</p>
+				</li>
+				<li>
+					<p>
+						<a data-href="https://www.baidu.com/">百度（外部链接）</a>
+					</p>
+				</li>
+			</ul>
+			<script src="js/index.js"></script>
+		</div>
+	</div>
+</body>
+</html>

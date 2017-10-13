@@ -1,0 +1,13 @@
+<div data-role=page id="chtml">
+	<a href="index.html" class="jump-a">index</a>
+	<button id="btn">点我</button>
+	<script>
+		onEvent.on( 'renderafter', function( e ) {
+			console.log( e.page )
+			console.log( e.data )
+			Tools.$( '#btn' ).onclick = function () {
+				Tools.alert( '你成功点击了我' )
+			}
+		})
+	</script>
+</div>
