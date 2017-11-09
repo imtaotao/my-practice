@@ -172,7 +172,7 @@
 		let ret
 		let createErr
 		try {
-			// 装填一旦经改变参数值不再变化
+			// 状态一旦经改变参数值不再变化
 			ret = callback.call(self, ...self.S_VALUE)
 		} catch (error) {
 			ret = error
@@ -186,7 +186,7 @@
 	function reject (self, error) {
 		let callback = self._failure.shift()
 		self._success.shift()
-		// 如果当期回合的错误回调没有，就继续往下找，直到找到为止
+		// 如果当前回合的错误回调没有，就继续往下找，直到找到为止
 		// 相应的成功回调也要同步，因为错误回调中的 resolve 不可能往前调用
 		while (callback === null) {
 			callback = self._failure.shift()
