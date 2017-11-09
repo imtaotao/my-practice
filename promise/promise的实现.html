@@ -34,7 +34,7 @@
 				return Object.prototype.toString.call(fn) === '[object Function]'
 			}
 
-			function getFnBody (fn) {
+			function getFnBpdy (fn) {
 				if (fn === undefined) return
 				if (!fn || typeof fn !== 'function') {
 					throw new TypeError('Parameter must be a function.')
@@ -66,7 +66,7 @@
 					this.S_VALUE  = null
 					this.F_VALUE  = null
 
-					if (!getFnBody(fn)) 
+					if (!getFnBpdy(fn)) 
 						return console.warn(
 							'Please do not pass in an empty function.'
 						)
@@ -102,7 +102,7 @@
 			_Promise.all = function (arr) {
 				if (!arr) return console.warn('Parameter can not be empty.')
 				if (arr.length == null) {
-					throw new Error('arguments must be array or array-like objects.')
+					throw new Error('Parameter must be array or array-like objects.')
 				}
 				if (!isArr(arr)) {
 					arr = Array.from(arr)
@@ -130,6 +130,7 @@
 						}
 						result[i] = val
 						--remaining === 0 && resolve(result)
+						
 					}
 					for (let i = 0; i < length; i++) {
 						res(i, arr[i])
@@ -147,14 +148,14 @@
 
 			_Promise.resolve = function (value) {
 				if (value instanceof _Promise) return value
-		        
-		        try {
-		        	return new _Promise(resolve => resolve(value))
-		        } catch (error) {
-		        	return new _Promise((resolve, reject) => {
-		        		reject(error)
-		        	})
-		        }
+
+				try {
+					return new _Promise(resolve => resolve(value))
+				} catch (error) {
+					return new _Promise((resolve, reject) => {
+						reject(error)
+					})
+				}
 		        
 			}
 
@@ -173,14 +174,14 @@
 					)
 				}
 				const callback = self._success.shift()
-				while (self._failure[0] === null) {
-					self._failure.shift()
-				}
+				// 此次回调中的失败回调也要清除
+				self._failure.shift()
 				if (!callback || self._status !== PENDING) return
 				let ret
 				let createErr
 				try {
-					ret = callback.call(self, ...value)
+					// 装填一旦经改变参数值不再变化
+					ret = callback.call(self, ...self.S_VALUE)
 				} catch (error) {
 					ret = error
 					createErr = true
@@ -191,13 +192,22 @@
 			}
 
 			function reject (self, error) {
-				const callback = self._failure.shift()
+				let callback = self._failure.shift()
 				self._success.shift()
+				// 如果当期回合的错误回调没有，就继续往下找，直到找到为止
+				// 相应的成功回调也要同步，因为错误回调中的 resolve 不可能往前调用
+				while (callback === null) {
+					callback = self._failure.shift()
+					self._success.shift()
+				}
+				// 如果没有错误回调来接盘
+				if (!callback) throw new Error(error)
+
 				if (!callback || self._status !== PENDING) return
 				let ret
 				let createErr
 				try {
-					ret = callback.call(self, error)
+					ret = callback.call(self, error || self.F_VALUE)
 				} catch (error) {
 					ret = error
 					createErr = true
@@ -217,6 +227,8 @@
 
 				instance._success = self._success.slice()
 				instance._failure = self._failure.slice()
+				instance.S_VALUE  = self.S_VALUE
+				instance.F_VALUE  = self.F_VALUE
 			}
 
 			function doResolve (fn, promise) {
@@ -251,33 +263,62 @@
 			window._Promise = _Promise
 		}(this)
 	</script>
-
 	<script>
-		// 测试代码
-		const p1 = _Promise.resolve(3)
-		const p2 = new _Promise((resolve, reject) => {
-		  setTimeout(resolve, 100, 'foo')
-		  reject('error')
-		}); 
-		const p3 = 1337
+	// 切换原生的promise
+	// const _Promise = Promise
 
-		_Promise.all([p1, p2, p3]).then(values => { 
-		  console.log(values)
-		}, err => console.warn(err));
+	// // 测试代码
+	function start() {
+	  return new _Promise((resolve, reject) => {
+	    resolve('start');
+	  });
+	}
 
-		// p.finally(err => console.log(err))
+	start()
+	.then(data => {
+		// promise start
+		console.log('result of start: ', data);
+		return _Promise.resolve(1); // p1
+	})
+	.then(data => {
+		// promise p1
+		console.log('result of p1: ', data);
+		return _Promise.reject({
+			notReal_PromiseException: true,
+		}); // p2
+	})
+	.then(data => {
+		// promise p2
+		console.log('result of p2: ', data);
+		return _Promise.resolve(3); // p3
+	})
+	.catch(ex => {
+		console.log('ex: ', ex);
+		if (ex.notReal_PromiseException) {
+			// 一切正常，只是通过 catch 方法来中止 promise chain
+			// 也就是中止 promise p2 的执行
+			return true;
+		}
+		// 真正发生异常
+		return false;
+	});	
 
-		_Promise.resolve(1).then(_ => {
-			console.log(_)
-			throw new Error('ddccuu')
-			return _Promise.reject('cuowuf')
-		}).catch(err => {
-			console.log(err)
-			throw new Error('dd')
-			return _Promise.resolve(2)
-		}).then(_ => {
-			console.log(_)
-		}, err => console.log(err))
+	var p = new _Promise((re, rj) => {
+		for (let i = 0; i < 10; i++) {
+			setTimeout(_ => re(i * 10, 'taotao' +i), 1000)
+		}
+	})
+	setTimeout(_ => {
+		p.then((res, name) => console.log(res, name, '21'))
+	}, 1000)
+	p.then((res,name) => console.log(res, name))
+	.then(_ => {
+		console.log(_)
+		return _Promise.reject('error')
+	}).catch(e => {
+		console.warn(e)
+	})
+
 	</script>
 </body>
 </html>

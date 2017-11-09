@@ -140,14 +140,14 @@
 
 	_Promise.resolve = function (value) {
 		if (value instanceof _Promise) return value
-        
-        try {
-        	return new _Promise(resolve => resolve(value))
-        } catch (error) {
-        	return new _Promise((resolve, reject) => {
-        		reject(error)
-        	})
-        }
+
+		try {
+			return new _Promise(resolve => resolve(value))
+		} catch (error) {
+			return new _Promise((resolve, reject) => {
+				reject(error)
+			})
+		}
         
 	}
 
@@ -166,14 +166,14 @@
 			)
 		}
 		const callback = self._success.shift()
-		while (self._failure[0] === null) {
-			self._failure.shift()
-		}
+		// 此次回调中的失败回调也要清除
+		self._failure.shift()
 		if (!callback || self._status !== PENDING) return
 		let ret
 		let createErr
 		try {
-			ret = callback.call(self, ...value)
+			// 装填一旦经改变参数值不再变化
+			ret = callback.call(self, ...self.S_VALUE)
 		} catch (error) {
 			ret = error
 			createErr = true
@@ -184,13 +184,22 @@
 	}
 
 	function reject (self, error) {
-		const callback = self._failure.shift()
+		let callback = self._failure.shift()
 		self._success.shift()
+		// 如果当期回合的错误回调没有，就继续往下找，直到找到为止
+		// 相应的成功回调也要同步，因为错误回调中的 resolve 不可能往前调用
+		while (callback === null) {
+			callback = self._failure.shift()
+			self._success.shift()
+		}
+		// 如果没有错误回调来接盘
+		if (!callback) throw new Error(error)
+
 		if (!callback || self._status !== PENDING) return
 		let ret
 		let createErr
 		try {
-			ret = callback.call(self, error)
+			ret = callback.call(self, error || self.F_VALUE)
 		} catch (error) {
 			ret = error
 			createErr = true
@@ -210,6 +219,8 @@
 
 		instance._success = self._success.slice()
 		instance._failure = self._failure.slice()
+		instance.S_VALUE  = self.S_VALUE
+		instance.F_VALUE  = self.F_VALUE
 	}
 
 	function doResolve (fn, promise) {
