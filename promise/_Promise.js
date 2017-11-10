@@ -1,3 +1,7 @@
+/*
+   来自 taotao 的 promise 😁😁😁
+*/
+
 function createPromise() {
     'use strict';
 
@@ -9,7 +13,6 @@ function createPromise() {
     let SAVE_ERROR = null
     let IS_ERROR = {}
 
-    // 避免在函数内部写 try catch
     function tryCall(fn, resolve, reject) {
         try {
             return fn(resolve, reject)
@@ -144,7 +147,6 @@ function createPromise() {
                 }
                 result[i] = val
                 --remaining === 0 && resolve(result)
-
             }
 
             for (let i = 0; i < length; i++) {
@@ -266,7 +268,6 @@ function createPromise() {
             setTimeout(_ => reject(promise, SAVE_ERROR))
         }
     }
-
     return _Promise
 }
 
