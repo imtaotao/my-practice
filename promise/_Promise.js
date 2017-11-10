@@ -1,15 +1,15 @@
-'use strict';
+function createPromise() {
+    'use strict';
 
-~function (window, undefined) {
     const PENDING = 'pending'
     const RESOLVE = 'fulfilled'
-    const REJECT  = 'rejected'
+    const REJECT = 'rejected'
 
     let SAVE_ERROR = null
-    let IS_ERROR   = {}
+    let IS_ERROR = {}
 
     // 避免在函数内部写 try catch
-    function tryCall (fn, resolve, reject) {
+    function tryCall(fn, resolve, reject) {
         try {
             return fn(resolve, reject)
         } catch (err) {
@@ -18,43 +18,42 @@
         }
     }
 
-    function deferred (onResolve, onReject) {
+    function deferred(onResolve, onReject) {
         this.onResolve = isFn(onResolve) ? onResolve : null
-        this.onReject  = isFn(onReject)  ? onReject  : null
+        this.onReject = isFn(onReject) ? onReject : null
     }
 
-    function getCB (self, attr) {
+    function getCB(self, attr) {
         let deferred = self._CBQueue.shift()
         if (!deferred) return null
 
-        if (deferred[attr] === null) {
+        while (deferred[attr] === null) {
             deferred = self._CBQueue.shift()
+            if (!deferred) return null
         }
-
-        if (!deferred) return null
         return deferred[attr]
     }
 
-    function isArr (arr) {
+    function isArr(arr) {
         return Object.prototype.toString.call(arr) === '[object Array]'
     }
 
-    function isFn (fn) {
+    function isFn(fn) {
         return Object.prototype.toString.call(fn) === '[object Function]'
     }
 
-    function getFnBpdy (fn) {
+    function getFnBpdy(fn) {
         if (fn === undefined) return
         if (!fn || typeof fn !== 'function') {
             throw new TypeError('Parameter must be a function.')
         }
-        const fnStr  = fn + ''
+        const fnStr = fn + ''
         const regOne = /{([^{|^}])*(.|\s)*}/g
         const regTwo = /[>|)].*/g
         const regThr = /[)].*[>]/g
 
         const complate = fnStr.match(regOne)
-        const omitted  = fnStr.match(regTwo)
+        const omitted = fnStr.match(regTwo)
 
         if (!complate && !omitted) return ''
         if (complate) {
@@ -68,10 +67,10 @@
     }
 
     class _Promise {
-        constructor (fn) {
-            this._status  = PENDING
-            this.S_VALUE  = null
-            this.F_VALUE  = null
+        constructor(fn) {
+            this._status = PENDING
+            this.S_VALUE = null
+            this.F_VALUE = null
             this._CBQueue = []
 
             if (!getFnBpdy(fn))
@@ -81,7 +80,7 @@
             doResolve(fn, this)
         }
 
-        then (s, f) {
+        then(s, f) {
             if (!isFn(s)) s = null
             if (!isFn(f)) f = null
             if (this._status === RESOLVE) {
@@ -97,11 +96,11 @@
             return this
         }
 
-        catch (fail) {
+        catch(fail) {
             return this.then(null, fail)
         }
 
-        finally (fn) {
+        finally(fn) {
             return this.then(fn, fn)
         }
     }
@@ -115,13 +114,13 @@
             arr = Array.from(arr)
         }
 
-        const length  = arr.length
-        const result  = []
+        const length = arr.length
+        const result = []
         let remaining = length
-        let i         = 0
+        let i = 0
         return new _Promise((resolve, reject) => {
             if (length === 0) return resolve([])
-            function res (i, val) {
+            function res(i, val) {
                 // 判断实例
                 if (val instanceof _Promise) {
                     // 如果状态是 reject
@@ -139,6 +138,7 @@
                 --remaining === 0 && resolve(result)
 
             }
+
             for (let i = 0; i < length; i++) {
                 res(i, arr[i])
             }
@@ -172,7 +172,7 @@
         })
     }
 
-    function resolve (self, value) {
+    function resolve(self, value) {
         // 不能传入当前上下文
         if (value === self) {
             return reject(
@@ -195,7 +195,7 @@
         transferCB(ret, self, createErr)
     }
 
-    function reject (self, error) {
+    function reject(self, error) {
         const callback = getCB(self, 'onReject')
         // 如果没有错误回调来接盘
         if (!callback) throw new Error(error)
@@ -212,7 +212,7 @@
         transferCB(ret, self, createErr)
     }
 
-    function transferCB (instance, self, createErr) {
+    function transferCB(instance, self, createErr) {
         // 判断当前回调是不是返回了一个 promise 实例
         if (!(instance instanceof _Promise)) {
             const _ret = instance
@@ -224,7 +224,7 @@
         instance._CBQueue = self._CBQueue.slice()
     }
 
-    function doResolve (fn, promise) {
+    function doResolve(fn, promise) {
         let done = false
         const res = tryCall(fn,
             // 允许传多个参数
@@ -253,6 +253,9 @@
         }
     }
 
-    window.getFnBpdy = getFnBpdy
-    window._Promise = _Promise
-}(this)
+    return _Promise
+}
+
+typeof module !== 'undefined' && typeof module.exports === 'object' ?
+    module.exports = createPromise() :
+	this._Promise  = createPromise()
