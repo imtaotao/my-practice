@@ -3,7 +3,8 @@ function createPromise() {
 
     const PENDING = 'pending'
     const RESOLVE = 'fulfilled'
-    const REJECT = 'rejected'
+    const REJECT  = 'rejected'
+	const ANPRO   = 'another_promise'
 
     let SAVE_ERROR = null
     let IS_ERROR = {}
@@ -24,6 +25,13 @@ function createPromise() {
     }
 
     function getCB(self, attr) {
+		const CBQueue = self._CBQueue
+    	while (self._status === ANPRO) {
+    		self = attr === 'onResolve' ? self.S_VALUE : self.F_VALUE
+            if (CBQueue) {
+                self._CBQueue = CBQueue.slice()
+			}
+		}
         let deferred = self._CBQueue.shift()
         if (!deferred) return null
 
@@ -84,11 +92,11 @@ function createPromise() {
             if (!isFn(s)) s = null
             if (!isFn(f)) f = null
             if (this._status === RESOLVE) {
-                s && s.call(this, ...this.S_VALUE)
+                s && s.call(this, this.S_VALUE)
                 return this
             }
             if (this._status === REJECT) {
-                f && f.call(this, ...this.F_VALUE)
+                f && f.call(this, this.F_VALUE)
                 return this
             }
 
@@ -185,7 +193,7 @@ function createPromise() {
         let ret
         let createErr
         try {
-            ret = callback.call(self, ...value)
+            ret = callback.call(self, value)
         } catch (error) {
             ret = error
             createErr = true
@@ -228,10 +236,13 @@ function createPromise() {
         let done = false
         const res = tryCall(fn,
             // 允许传多个参数
-            (...args) => {
+            args => {
                 if (done) return
                 done = true
                 promise.S_VALUE = args
+				if (args instanceof _Promise) {
+                	promise._status = ANPRO
+				}
                 setTimeout(_ => resolve(promise, args))
             },
             error => {
@@ -241,6 +252,9 @@ function createPromise() {
                 }
                 done = true
                 promise.F_VALUE = error
+                if (error instanceof _Promise) {
+                    promise._status = ANPRO
+                }
                 setTimeout(_ => reject(promise, error))
             }
         )
