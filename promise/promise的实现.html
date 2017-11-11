@@ -8,7 +8,7 @@
 	<script src="_Promise.js"></script>
 	<script>
 	// 切换原生的promise
-	 const _Promise = Promise
+	 // const _Promise = Promise
 
 	function start() {
 	  return new _Promise((resolve, reject) => {
@@ -74,7 +74,7 @@
 //
 	function getFn (fn) {
 	    return new _Promise((re, rj) => {
-			const str = getFnBpdy(fn)
+			const str = getFnBody(fn)
 			setTimeout(_ => {
 			    str ? re(str) : rj('no function str')
 			}, 1000)

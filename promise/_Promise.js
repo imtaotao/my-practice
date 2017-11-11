@@ -2,7 +2,7 @@
    来自 taotao 的 promise 😁😁😁
 */
 
-function createPromise() {
+function createPromise(window, undefined) {
     'use strict';
 
     const PENDING = 'pending'
@@ -28,13 +28,18 @@ function createPromise() {
     }
 
     function getCB(self, attr) {
-		const CBQueue = self._CBQueue
-    	while (self._status === ANPRO) {
-    		self = attr === 'onResolve' ? self.S_VALUE : self.F_VALUE
+        while (self._status === ANPRO) {
+            const CBQueue = self._CBQueue
+            const value = attr === 'onResolve' ? self.S_VALUE : self.F_VALUE
+            self = value
             if (CBQueue) {
                 self._CBQueue = CBQueue.slice()
-			}
-		}
+            }
+            // 如果正在等待的话，就不做出栈处理了
+            return null
+        }
+		
+
         let deferred = self._CBQueue.shift()
         if (!deferred) return null
 
@@ -53,7 +58,7 @@ function createPromise() {
         return Object.prototype.toString.call(fn) === '[object Function]'
     }
 
-    function getFnBpdy(fn) {
+    function getFnBody(fn) {
         if (fn === undefined) return
         if (!fn || typeof fn !== 'function') {
             throw new TypeError('Parameter must be a function.')
@@ -84,7 +89,7 @@ function createPromise() {
             this.F_VALUE = null
             this._CBQueue = []
 
-            if (!getFnBpdy(fn))
+            if (!getFnBody(fn))
                 return console.warn(
                     'Please do not pass in an empty function.'
                 )
@@ -241,10 +246,10 @@ function createPromise() {
             args => {
                 if (done) return
                 done = true
-                promise.S_VALUE = args
 				if (args instanceof _Promise) {
                 	promise._status = ANPRO
 				}
+                promise.S_VALUE = args
                 setTimeout(_ => resolve(promise, args))
             },
             error => {
@@ -253,10 +258,10 @@ function createPromise() {
                     error = new TypeError('A promise cannot be rejected with itself.')
                 }
                 done = true
-                promise.F_VALUE = error
                 if (error instanceof _Promise) {
                     promise._status = ANPRO
                 }
+                promise.F_VALUE = error
                 setTimeout(_ => reject(promise, error))
             }
         )
@@ -268,9 +273,10 @@ function createPromise() {
             setTimeout(_ => reject(promise, SAVE_ERROR))
         }
     }
+    if (window) window.getFnBody = getFnBody
     return _Promise
 }
 
 typeof module !== 'undefined' && typeof module.exports === 'object' ?
     module.exports = createPromise() :
-	this._Promise  = createPromise()
+	this._Promise  = createPromise(this)
