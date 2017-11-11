@@ -278,9 +278,9 @@ function createPromise(window, undefined) {
             args => {
                 if (done) return
                 done = true
-				if (args instanceof _Promise) {
-                	promise._status = ANPRO
-				}
+                if (args instanceof _Promise) {
+                    promise._status = ANPRO
+                }
                 promise._value = args
                 setTimeout(_ => resolve(promise, args))
             },
