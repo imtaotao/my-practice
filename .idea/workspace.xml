@@ -2,8 +2,11 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="d21acf9a-f943-404f-abb8-c055cfed4e84" name="Default" comment="">
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/promise/_Promise.js" afterPath="$PROJECT_DIR$/promise/_Promise.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/promise/test.html" afterPath="$PROJECT_DIR$/promise/test.html" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/promise/test2.html" afterPath="$PROJECT_DIR$/promise/test2.html" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/promise/test3.html" afterPath="$PROJECT_DIR$/promise/test3.html" />
     </list>
     <ignored path="$PROJECT_DIR$/.tmp/" />
     <ignored path="$PROJECT_DIR$/temp/" />
@@ -18,21 +21,11 @@
   <component name="ExecutionTargetManager" SELECTED_TARGET="default_target" />
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="promise的实现.html" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/promise/promise的实现.html">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="300">
-              <caret line="15" column="9" lean-forward="true" selection-start-line="15" selection-start-column="9" selection-end-line="15" selection-end-column="9" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="_Promise.js" pinned="false" current-in-tab="false">
+      <file leaf-file-name="_Promise.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/promise/_Promise.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="404">
-              <caret line="25" column="41" lean-forward="false" selection-start-line="25" selection-start-column="41" selection-end-line="25" selection-end-column="41" />
+            <state relative-caret-position="285">
+              <caret line="153" column="32" lean-forward="false" selection-start-line="153" selection-start-column="32" selection-end-line="153" selection-end-column="32" />
               <folding>
                 <element signature="n#!!doc" expanded="true" />
               </folding>
@@ -40,11 +33,31 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="test.html" pinned="false" current-in-tab="true">
+      <file leaf-file-name="test2.html" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/promise/test2.html">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="94">
+              <caret line="10" column="0" lean-forward="true" selection-start-line="10" selection-start-column="0" selection-end-line="10" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="test3.html" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/promise/test3.html">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="671">
+              <caret line="90" column="24" lean-forward="true" selection-start-line="90" selection-start-column="24" selection-end-line="90" selection-end-column="24" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="test.html" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/promise/test.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="220">
-              <caret line="11" column="45" lean-forward="true" selection-start-line="11" selection-start-column="24" selection-end-line="11" selection-end-column="45" />
+            <state relative-caret-position="106">
+              <caret line="10" column="26" lean-forward="true" selection-start-line="10" selection-start-column="26" selection-end-line="10" selection-end-column="26" />
               <folding />
             </state>
           </provider>
@@ -63,6 +76,8 @@
     <findStrings>
       <find>handle</find>
       <find>handler</find>
+      <find>slice</find>
+      <find>instanceQueue</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -74,8 +89,10 @@
         <option value="$PROJECT_DIR$/promise/_Promise_modify.js" />
         <option value="$PROJECT_DIR$/.gitignore" />
         <option value="$PROJECT_DIR$/promise/promise的实现.html" />
-        <option value="$PROJECT_DIR$/promise/_Promise.js" />
+        <option value="$PROJECT_DIR$/promise/test2.html" />
+        <option value="$PROJECT_DIR$/promise/test3.html" />
         <option value="$PROJECT_DIR$/promise/test.html" />
+        <option value="$PROJECT_DIR$/promise/_Promise.js" />
       </list>
     </option>
   </component>
@@ -236,12 +253,12 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1510282148206</updated>
-      <workItem from="1510282149545" duration="15709000" />
+      <workItem from="1510282149545" duration="23109000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="15709000" />
+    <option name="totallyTimeSpent" value="23109000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="0" width="1440" height="900" extended-state="0" />
@@ -318,21 +335,37 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/promise/_Promise.js">
+    <entry file="file://$PROJECT_DIR$/promise/test2.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="404">
-          <caret line="25" column="41" lean-forward="false" selection-start-line="25" selection-start-column="41" selection-end-line="25" selection-end-column="41" />
-          <folding>
-            <element signature="n#!!doc" expanded="true" />
-          </folding>
+        <state relative-caret-position="94">
+          <caret line="10" column="0" lean-forward="true" selection-start-line="10" selection-start-column="0" selection-end-line="10" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/promise/test3.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="671">
+          <caret line="90" column="24" lean-forward="true" selection-start-line="90" selection-start-column="24" selection-end-line="90" selection-end-column="24" />
+          <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/promise/test.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="220">
-          <caret line="11" column="45" lean-forward="true" selection-start-line="11" selection-start-column="24" selection-end-line="11" selection-end-column="45" />
+        <state relative-caret-position="106">
+          <caret line="10" column="26" lean-forward="true" selection-start-line="10" selection-start-column="26" selection-end-line="10" selection-end-column="26" />
           <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/promise/_Promise.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="285">
+          <caret line="153" column="32" lean-forward="false" selection-start-line="153" selection-start-column="32" selection-end-line="153" selection-end-column="32" />
+          <folding>
+            <element signature="n#!!doc" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>

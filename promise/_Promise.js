@@ -13,7 +13,7 @@ function createPromise(window, undefined) {
     let SAVE_ERROR = null
     let IS_ERROR = {}
 
-    function tryCall(fn, resolve, reject) {
+    function tryCall (fn, resolve, reject) {
         try {
             return fn(resolve, reject)
         } catch (err) {
@@ -21,8 +21,8 @@ function createPromise(window, undefined) {
             return IS_ERROR
         }
     }
-
-    function deferred(onResolve, onReject) {
+    
+    function deferred (onResolve, onReject) {
         this.onResolve = isFn(onResolve) ? onResolve : null
         this.onReject = isFn(onReject) ? onReject : null
     }
@@ -40,13 +40,13 @@ function createPromise(window, undefined) {
     }
 
     // 得到相应的回调，并且跟踪子 promise，做出相应调整
-    function getCB(self, attr, pure) {
+    function getCB (self, attr, pure) {
         if (!pure) {
             while (self._status === ANPRO) {
                 const CBQueue = self._CBQueue
                 self = self._value
                 if (CBQueue) {
-                    self._CBQueue = CBQueue.slice()
+                    self._CBQueue = CBQueue
                 }
             }
             // 如果子 promise 状态已经改变了，其内部的调用已经完成，后续继续捕捉参数
@@ -65,15 +65,15 @@ function createPromise(window, undefined) {
         return deferred[attr]
     }
 
-    function isArr(arr) {
+    function isArr (arr) {
         return Object.prototype.toString.call(arr) === '[object Array]'
     }
 
-    function isFn(fn) {
+    function isFn (fn) {
         return Object.prototype.toString.call(fn) === '[object Function]'
     }
-
-    function getFnBody(fn) {
+	
+    function getFnBody (fn) {
         if (fn === undefined) return
         if (!fn || typeof fn !== 'function') {
             throw new TypeError('Parameter must be a function.')
@@ -98,7 +98,7 @@ function createPromise(window, undefined) {
     }
 
     class _Promise {
-        constructor(fn) {
+        constructor (fn, name) {
             if (!getFnBody(fn))
                 return console.warn(
                     'Please do not pass in an empty function.'
@@ -110,27 +110,22 @@ function createPromise(window, undefined) {
             doResolve(fn, this)
         }
 
-        then(s, f) {
+        then (s, f) {
             if (!isFn(s)) s = null
             if (!isFn(f)) f = null
-            if (this._status === RESOLVE) {
-                s && s.call(this, this._value)
-                return this
-            }
-            if (this._status === REJECT) {
-                f && f.call(this, this._value)
-                return this
-            }
 
             this._CBQueue.push(new deferred(s, f))
+            if (this._status === RESOLVE) resolve(this, this._value)
+            if (this._status === REJECT) reject(this, this._value)
+
             return this
         }
 
-        catch(fail) {
+        catch (fail) {
             return this.then(null, fail)
         }
 
-        finally(fn) {
+        finally (fn) {
             return this.then(fn, fn)
         }
 
@@ -206,7 +201,7 @@ function createPromise(window, undefined) {
         })
     }
 
-    function resolve(self, value) {
+    function resolve (self, value) {
         // 不能传入当前上下文
         if (value === self) {
             return reject(
@@ -234,7 +229,7 @@ function createPromise(window, undefined) {
         transferCB(ret, self, createErr)
     }
 
-    function reject(self, error) {
+    function reject (self, error) {
         let callback = getCB(self, 'onReject')
 
         if (self._status == RESOLVE || self._status === REJECT) return
@@ -256,7 +251,7 @@ function createPromise(window, undefined) {
         transferCB(ret, self, createErr)
     }
 
-    function transferCB(instance, self, createErr) {
+    function transferCB (instance, self, createErr) {
         // 判断当前回调是不是返回了一个 promise 实例
         if (!(instance instanceof _Promise)) {
             const _ret = instance
@@ -268,15 +263,14 @@ function createPromise(window, undefined) {
                 reject(_ret)
             })
         }
-
-        instance._CBQueue = self._CBQueue.slice()
+        instance._CBQueue = self._CBQueue
     }
 
     /*
         * 通过一个开关，确保 resolve 和 reject 只被调用一次
     */
 
-    function doResolve(fn, promise) {
+    function doResolve (fn, promise) {
         let done = false
         const res = tryCall(fn,
             // 允许传多个参数
