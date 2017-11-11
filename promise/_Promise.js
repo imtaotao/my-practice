@@ -39,6 +39,7 @@ function createPromise(window, undefined) {
         callback.call(self, self._value) 
     }
 
+    // 得到相应的回调，并且跟踪子 promise，做出相应调整
     function getCB(self, attr, pure) {
         if (!pure) {
             while (self._status === ANPRO) {
@@ -98,14 +99,14 @@ function createPromise(window, undefined) {
 
     class _Promise {
         constructor(fn) {
-            this._status  = PENDING
-            this._value   = null
-            this._CBQueue = []
-
             if (!getFnBody(fn))
                 return console.warn(
                     'Please do not pass in an empty function.'
                 )
+            this._status  = PENDING
+            this._value   = null
+            this._CBQueue = []
+
             doResolve(fn, this)
         }
 
@@ -270,6 +271,10 @@ function createPromise(window, undefined) {
 
         instance._CBQueue = self._CBQueue.slice()
     }
+
+    /*
+        * 通过一个开关，确保 resolve 和 reject 只被调用一次
+    */
 
     function doResolve(fn, promise) {
         let done = false
