@@ -6,7 +6,7 @@ function createPromise(window, undefined) {
     'use strict';
 
     const PENDING = 'pending'
-    const RESOLVE = 'fulfilled'
+    const RESOLVE = 'resolved'
     const REJECT  = 'rejected'
 	const ANPRO   = 'another_promise'
 
@@ -27,22 +27,36 @@ function createPromise(window, undefined) {
         this.onReject = isFn(onReject) ? onReject : null
     }
 
-    function getCB(self, attr) {
-        while (self._status === ANPRO) {
-            const CBQueue = self._CBQueue
-            const value = attr === 'onResolve' ? self.S_VALUE : self.F_VALUE
-            self = value
-            if (CBQueue) {
-                self._CBQueue = CBQueue.slice()
+    function deferredHandle (self) {
+        if (!self._CBQueue || !self._CBQueue.length) return
+        const attr = self._status === RESOLVE ? 'onResolve' : 'onReject'
+        const callback = getCB(self, attr, true)
+        if (!callback) {
+            if (self._status === REJECT) {
+                throw new Error(self._value)
             }
-            // 如果正在等待的话，就不做出栈处理了
-            return null
         }
-		
+        callback.call(self, self._value) 
+    }
+
+    function getCB(self, attr, pure) {
+        if (!pure) {
+            while (self._status === ANPRO) {
+                const CBQueue = self._CBQueue
+                self = self._value
+                if (CBQueue) {
+                    self._CBQueue = CBQueue.slice()
+                }
+            }
+            // 如果子 promise 状态已经改变了，其内部的调用已经完成，后续继续捕捉参数
+            if (self._status === RESOLVE || self._status === REJECT) {
+                deferredHandle(self)
+                return null
+            }
+        }
 
         let deferred = self._CBQueue.shift()
         if (!deferred) return null
-
         while (deferred[attr] === null) {
             deferred = self._CBQueue.shift()
             if (!deferred) return null
@@ -84,9 +98,8 @@ function createPromise(window, undefined) {
 
     class _Promise {
         constructor(fn) {
-            this._status = PENDING
-            this.S_VALUE = null
-            this.F_VALUE = null
+            this._status  = PENDING
+            this._value   = null
             this._CBQueue = []
 
             if (!getFnBody(fn))
@@ -100,11 +113,11 @@ function createPromise(window, undefined) {
             if (!isFn(s)) s = null
             if (!isFn(f)) f = null
             if (this._status === RESOLVE) {
-                s && s.call(this, this.S_VALUE)
+                s && s.call(this, this._value)
                 return this
             }
             if (this._status === REJECT) {
-                f && f.call(this, this.F_VALUE)
+                f && f.call(this, this._value)
                 return this
             }
 
@@ -118,6 +131,10 @@ function createPromise(window, undefined) {
 
         finally(fn) {
             return this.then(fn, fn)
+        }
+
+        toString () {
+            return '[object _Promise]'
         }
     }
 
@@ -144,9 +161,10 @@ function createPromise(window, undefined) {
                         return reject(val._value)
                     }
 
-                    val.then(value => {
+                    val.then(function(value) {
                         result[i] = value
                         --remaining === 0 && resolve(result)
+                        return value
                     }, reject)
                     return
                 }
@@ -196,11 +214,16 @@ function createPromise(window, undefined) {
             )
         }
         const callback = getCB(self, 'onResolve')
-        if (!callback || self._status !== PENDING) return
+        if (
+            !callback || 
+            self._status == RESOLVE || 
+            self._status === REJECT
+        ) return
+
         let ret
         let createErr
         try {
-            ret = callback.call(self, value)
+            ret = callback.call(self, value || self._value)
         } catch (error) {
             ret = error
             createErr = true
@@ -211,14 +234,19 @@ function createPromise(window, undefined) {
     }
 
     function reject(self, error) {
-        const callback = getCB(self, 'onReject')
+        let callback = getCB(self, 'onReject')
+
+        if (self._status == RESOLVE || self._status === REJECT) return
         // 如果没有错误回调来接盘
-        if (!callback) throw new Error(error)
-        if (self._status !== PENDING) return
+        if (!callback) {
+            self._status = REJECT
+            throw new Error(error)
+        }
+
         let ret
         let createErr
         try {
-            ret = callback.call(self, error || self.F_VALUE)
+            ret = callback.call(self, error || self._value)
         } catch (error) {
             ret = error
             createErr = true
@@ -232,7 +260,11 @@ function createPromise(window, undefined) {
         if (!(instance instanceof _Promise)) {
             const _ret = instance
             instance = new _Promise((resolve, reject) => {
-                !createErr ? resolve(_ret) : reject(_ret)
+                if (!createErr) {
+                    self._status === RESOLVE && resolve(_ret)
+                    return
+                }
+                reject(_ret)
             })
         }
 
@@ -249,7 +281,7 @@ function createPromise(window, undefined) {
 				if (args instanceof _Promise) {
                 	promise._status = ANPRO
 				}
-                promise.S_VALUE = args
+                promise._value = args
                 setTimeout(_ => resolve(promise, args))
             },
             error => {
@@ -261,7 +293,7 @@ function createPromise(window, undefined) {
                 if (error instanceof _Promise) {
                     promise._status = ANPRO
                 }
-                promise.F_VALUE = error
+                promise._value = error
                 setTimeout(_ => reject(promise, error))
             }
         )
@@ -269,7 +301,7 @@ function createPromise(window, undefined) {
         // 如果有错误
         if (!done && res === IS_ERROR) {
             done = true
-            promise.F_VALUE = SAVE_ERROR
+            promise._value = SAVE_ERROR
             setTimeout(_ => reject(promise, SAVE_ERROR))
         }
     }
